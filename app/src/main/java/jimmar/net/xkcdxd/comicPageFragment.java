@@ -2,12 +2,15 @@ package jimmar.net.xkcdxd;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -36,7 +39,6 @@ public class comicPageFragment extends Fragment implements View.OnClickListener 
     private float mDownPosX;
     private float mDownPosY;
 
-    private Dialog numberPickerDialog;
     TextView comicNumber;
 
     ImageButton favoriteBtn;
@@ -79,7 +81,8 @@ public class comicPageFragment extends Fragment implements View.OnClickListener 
                         break;
                     case MotionEvent.ACTION_UP:
                         if (touchSate) {
-                            Toast.makeText(getActivity(), currentStrip.getAlt(), Toast.LENGTH_LONG).show();
+//                            Toast.makeText(getActivity(), currentStrip.getAlt(), Toast.LENGTH_LONG).show();
+                            showAltText();
                         }
                         break;
                     case MotionEvent.ACTION_MOVE:
@@ -203,7 +206,30 @@ public class comicPageFragment extends Fragment implements View.OnClickListener 
             }
         });
         d.show();
+    }
 
+    public void showAltText() {
+        if (currentStrip == null)
+            return;
+        final Dialog d = new Dialog(getActivity());
+        d.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        d.setContentView(R.layout.alt_text_dialog);
+        TextView tv = (TextView) d.findViewById(R.id.alt_text);
+        tv.setText(currentStrip.getAlt());
+        Button showMoreBtn = (Button) d.findViewById(R.id.show_more_btn);
+        if (currentStrip.getLink().length() < 3)
+            showMoreBtn.setVisibility(View.GONE);
+        else {
+            showMoreBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(currentStrip.getLink()));
+                    startActivity(browserIntent);
+                    d.dismiss();
+                }
+            });
+        }
+        d.show();
     }
 
     @Override
