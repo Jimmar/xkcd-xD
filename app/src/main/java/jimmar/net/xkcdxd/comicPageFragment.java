@@ -13,6 +13,8 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.webkit.WebView;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.NumberPicker;
 import android.widget.TextView;
@@ -28,7 +30,7 @@ import jimmar.net.xkcdxd.classes.Strip;
 import jimmar.net.xkcdxd.helpers.connectionClient;
 
 
-public class comicPageFragment extends Fragment implements View.OnClickListener {
+public class comicPageFragment extends Fragment implements View.OnClickListener, CompoundButton.OnCheckedChangeListener{
 
     WebView wv;
     Strip currentStrip;
@@ -41,7 +43,7 @@ public class comicPageFragment extends Fragment implements View.OnClickListener 
 
     TextView comicNumber;
 
-    ImageButton favoriteBtn;
+    CheckBox favoriteBtn;
     ImageButton prevComicBtn;
     ImageButton nextComicBtn;
     ImageButton latestComicBtn;
@@ -102,12 +104,12 @@ public class comicPageFragment extends Fragment implements View.OnClickListener 
             }
         });
 
-        favoriteBtn = (ImageButton) rootView.findViewById(R.id.favorite_toggle);
+        favoriteBtn = (CheckBox) rootView.findViewById(R.id.favorite_toggle);
         prevComicBtn = (ImageButton) rootView.findViewById(R.id.prev_comic_btn);
         nextComicBtn = (ImageButton) rootView.findViewById(R.id.next_comic_btn);
         latestComicBtn = (ImageButton) rootView.findViewById(R.id.latest_comic_btn);
 
-        favoriteBtn.setOnClickListener(this);
+        favoriteBtn.setOnCheckedChangeListener(this);
         prevComicBtn.setOnClickListener(this);
         nextComicBtn.setOnClickListener(this);
         latestComicBtn.setOnClickListener(this);
@@ -234,9 +236,7 @@ public class comicPageFragment extends Fragment implements View.OnClickListener 
 
     @Override
     public void onClick(View v) {
-        if (v == favoriteBtn) {
-            //TODO add to favorites and toggle the button
-        } else if (v == prevComicBtn) {
+        if (v == prevComicBtn) {
             fetchComic(currentStrip.getNum() - 1);
         } else if (v == nextComicBtn) {
             if (currentStrip.getNum() < latestStrip.getNum())
@@ -244,5 +244,10 @@ public class comicPageFragment extends Fragment implements View.OnClickListener 
         } else if (v == latestComicBtn) {
             fetchComic();
         }
+    }
+
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        //TODO save as favorite/remove from favorite
     }
 }
