@@ -7,6 +7,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,7 +33,7 @@ import jimmar.net.xkcdxd.classes.Strip;
 import jimmar.net.xkcdxd.helpers.connectionClient;
 
 
-public class comicPageFragment extends Fragment implements View.OnClickListener, CompoundButton.OnCheckedChangeListener{
+public class comicPageFragment extends Fragment implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
 
     WebView wv;
     Strip currentStrip;
@@ -56,7 +59,7 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         MOVE_THRESHOLD_DP = 20 * getActivity().getResources().getDisplayMetrics().density;
-
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -182,9 +185,37 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
 
     public void displayComic(Strip comic) {
         currentStrip = comic;
+        if (comic.getLink().length() > 3)
+            Toast.makeText(getActivity(), getString(R.string.toast_full_version_available), Toast.LENGTH_SHORT).show();
         wv.loadUrl(comic.getImage_url().toString());
         comicNumber.setText(Integer.toString(comic.getNum()));
-        ((MainActivity) getActivity()).getSupportActionBar().setTitle(comic.getSafe_title());
+        ((MainActivity) getActivity()).mTitle = comic.getSafe_title();
+        ((MainActivity) getActivity()).restoreActionBar();
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        if (!((MainActivity) getActivity()).mNavigationDrawerFragment.isDrawerOpen())
+            inflater.inflate(R.menu.comic_page, menu);
+
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        switch (id) {
+            case R.id.action_share_pic:
+                shareCurrentComicAsPicture();
+                break;
+            case R.id.action_share_link:
+                shareCurrentComicAsLink();
+                break;
+            default:
+                break;
+
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     public void showNumberPicker() {
@@ -249,5 +280,18 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         //TODO save as favorite/remove from favorite
+    }
+
+    public void shareCurrentComicAsLink() {
+        Intent sendIntent = new Intent();
+        sendIntent.setAction(Intent.ACTION_SEND);
+        sendIntent.putExtra(Intent.EXTRA_TEXT, getString(R.string.share_comic_link) + "\n" + "http://xkcd.com/" + currentStrip.getNum());
+        sendIntent.setType("text/plain");
+        Intent openInChooser = Intent.createChooser(sendIntent, "Share on...");
+        startActivity(openInChooser);
+    }
+
+    public void shareCurrentComicAsPicture() {
+        //TODO save current comic to disk and share
     }
 }
