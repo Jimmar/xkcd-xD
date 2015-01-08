@@ -2,6 +2,9 @@ package jimmar.net.xkcdxd;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -288,10 +291,17 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
         sendIntent.putExtra(Intent.EXTRA_TEXT, getString(R.string.share_comic_link) + "\n" + "http://xkcd.com/" + currentStrip.getNum());
         sendIntent.setType("text/plain");
         Intent openInChooser = Intent.createChooser(sendIntent, "Share on...");
+
         startActivity(openInChooser);
     }
 
     public void shareCurrentComicAsPicture() {
         //TODO save current comic to disk and share
+
+        //copies alt text to the clipboard
+        ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText("Alt text", currentStrip.getAlt());
+        clipboard.setPrimaryClip(clip);
+        Toast.makeText(getActivity(), getString(R.string.toast_alt_text_copied), Toast.LENGTH_SHORT).show();
     }
 }
