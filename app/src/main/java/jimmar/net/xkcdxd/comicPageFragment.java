@@ -54,6 +54,8 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
     ImageButton nextComicBtn;
     ImageButton latestComicBtn;
 
+    Dialog reloadDialog;
+
     public comicPageFragment() {
         // Required empty public constructor
     }
@@ -101,7 +103,6 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
                 return false;
             }
         });
-        fetchComic();
         comicNumber = (TextView) rootView.findViewById(R.id.comic_number);
         comicNumber.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -119,6 +120,13 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
         prevComicBtn.setOnClickListener(this);
         nextComicBtn.setOnClickListener(this);
         latestComicBtn.setOnClickListener(this);
+
+        reloadDialog = new Dialog(getActivity());
+        reloadDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        reloadDialog.setContentView(R.layout.dialog_loading);
+        reloadDialog.setCancelable(false);
+
+        fetchComic();
         return rootView;
     }
 
@@ -137,6 +145,7 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
         final String POST_NUMBER = number == -1 ? "" : Integer.toString(number) + "/";
         connectionClient.get(POST_NUMBER, null, new JsonHttpResponseHandler() {
             public void onStart() {
+                reloadDialog.show();
                 super.onStart();
             }
 
@@ -175,7 +184,7 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
 
             @Override
             public void onFinish() {
-
+                reloadDialog.dismiss();
                 super.onFinish();
             }
         });
@@ -214,6 +223,12 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
             case R.id.action_share_link:
                 shareCurrentComicAsLink();
                 break;
+            case R.id.action_refresh:
+                if (currentStrip == null)
+                    fetchComic();
+                else
+                    fetchComic(currentStrip.getNum());
+                break;
             default:
                 break;
 
@@ -226,7 +241,7 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
             return;
         final Dialog d = new Dialog(getActivity());
         d.setTitle("NumberPicker");
-        d.setContentView(R.layout.number_picker_dialog);
+        d.setContentView(R.layout.dialog_number_picker);
         Button b1 = (Button) d.findViewById(R.id.submit_btn);
         final NumberPicker np = (NumberPicker) d.findViewById(R.id.numberPicker1);
         np.setMaxValue(latestStrip.getNum());
@@ -249,7 +264,7 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
             return;
         final Dialog d = new Dialog(getActivity());
         d.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        d.setContentView(R.layout.alt_text_dialog);
+        d.setContentView(R.layout.dialog_alt_text);
         TextView tv = (TextView) d.findViewById(R.id.alt_text);
         tv.setText(currentStrip.getAlt());
         Button showMoreBtn = (Button) d.findViewById(R.id.show_more_btn);
