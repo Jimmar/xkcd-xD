@@ -70,6 +70,8 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
 
     Bitmap bitmap;
 
+    boolean isShare = false;
+
     public comicPageFragment() {
         // Required empty public constructor
     }
@@ -237,7 +239,8 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
         int id = item.getItemId();
         switch (id) {
             case R.id.action_share_pic:
-                shareCurrentComicAsPicture();
+                isShare = true;
+                new FetchImage().execute();
                 break;
             case R.id.action_share_link:
                 shareCurrentComicAsLink();
@@ -249,7 +252,7 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
                     fetchComic(currentStrip.getNum());
                 break;
             case R.id.action_save:
-                reloadDialog.show();
+                isShare = false;
                 new FetchImage().execute();
                 break;
             default:
@@ -329,19 +332,66 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
         sendIntent.putExtra(Intent.EXTRA_TEXT, getString(R.string.share_comic_link) + "\n" + "http://xkcd.com/" + currentStrip.getNum());
         sendIntent.setType("text/plain");
         Intent openInChooser = Intent.createChooser(sendIntent, "Share on...");
-
         startActivity(openInChooser);
     }
 
+    /**
+     * shares a comic as a picture, gets called after fetch Image
+     */
     public void shareCurrentComicAsPicture() {
         //TODO save current comic to disk and share
+        File outputDir = getActivity().getExternalCacheDir(); // context being the Activity pointer
+        File outputFile = null;
+        try {
+            outputFile = File.createTempFile("shareTemp", "png", outputDir);
+            saveBitmapToDisk(bitmap, outputFile.getAbsolutePath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         //copies alt text to the clipboard
         ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = ClipData.newPlainText("Alt text", currentStrip.getAlt());
         clipboard.setPrimaryClip(clip);
+
+        Intent share = new Intent(Intent.ACTION_SEND);
+        share.setType("image/jpeg");
+        share.putExtra(Intent.EXTRA_STREAM, Uri.parse(outputFile.getAbsolutePath()));
         Toast.makeText(getActivity(), getString(R.string.toast_alt_text_copied), Toast.LENGTH_SHORT).show();
+        startActivity(Intent.createChooser(share, "Share Image"));
     }
+
+    /**
+     * saves a Bitmap to disk
+     *
+     * @param bmp                 the to be saved
+     * @param fileDestinationPath the full path destination including file name
+     * @return the path to the saved file, or null if unable to save
+     */
+
+    public String saveBitmapToDisk(Bitmap bmp, String fileDestinationPath) {
+        String path = "";
+
+        FileOutputStream out = null;
+        try {
+            out = new FileOutputStream(fileDestinationPath);
+            bmp.compress(Bitmap.CompressFormat.PNG, 100, out);
+            path = fileDestinationPath;
+        } catch (Exception e) {
+            e.printStackTrace();
+            path = null;
+        } finally {
+            try {
+                if (out != null) {
+                    out.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return path;
+    }
+
 
     public void saveComicBitmapToDisk() {
         String imageFileName = "xkcd_" + currentStrip.getNum() + ".png";
@@ -357,21 +407,8 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
             return;
         }
 
-        FileOutputStream out = null;
-        try {
-            out = new FileOutputStream(imageFile.getAbsoluteFile());
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (out != null) {
-                    out.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        saveBitmapToDisk(bitmap, imageFile.getAbsolutePath());
+
         Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
         File f = new File(imageFile.getAbsolutePath());
         Uri contentUri = Uri.fromFile(f);
@@ -381,9 +418,11 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
         reloadDialog.dismiss();
         Toast.makeText(getActivity(), "saved image " + imageFileName + " to " + storageDir.getAbsolutePath(), Toast.LENGTH_LONG).show();
         bitmap = null;
-
     }
 
+    /**
+     * fetches image and saves it in bitmap
+     */
     private class FetchImage extends AsyncTask<Void, Void, Void> {
 
         @Override
@@ -398,7 +437,7 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
             } catch (IOException e) {
                 Log.e("xkcdxd", "Failed in Decoding Bitmap");
                 e.printStackTrace();
-            } catch (Exception e){
+            } catch (Exception e) {
                 Log.e("xkcdxd", "Unknown exception");
                 e.printStackTrace();
             }
@@ -406,10 +445,25 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
         }
 
         @Override
+        protected void onPreExecute() {
+            reloadDialog.show();
+            super.onPreExecute();
+        }
+
+        @Override
         protected void onPostExecute(Void aVoid) {
-            saveComicBitmapToDisk();
+            if (isShare)
+                shareCurrentComicAsPicture();
+            else
+                saveComicBitmapToDisk();
             reloadDialog.dismiss();
             super.onPostExecute(aVoid);
+        }
+
+        @Override
+        protected void onCancelled(Void aVoid) {
+            reloadDialog.dismiss();
+            super.onCancelled(aVoid);
         }
     }
 
