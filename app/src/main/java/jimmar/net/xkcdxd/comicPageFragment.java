@@ -6,9 +6,14 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -31,6 +36,13 @@ import com.loopj.android.http.JsonHttpResponseHandler;
 import org.apache.http.Header;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import jimmar.net.xkcdxd.classes.Strip;
 import jimmar.net.xkcdxd.helpers.connectionClient;
@@ -56,6 +68,8 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
 
     Dialog reloadDialog;
 
+    Bitmap bitmap;
+
     public comicPageFragment() {
         // Required empty public constructor
     }
@@ -65,6 +79,7 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
         super.onCreate(savedInstanceState);
         MOVE_THRESHOLD_DP = 20 * getActivity().getResources().getDisplayMetrics().density;
         setHasOptionsMenu(true);
+        Log.d("xkcdxd", "comic page fragment created");
     }
 
     @Override
@@ -153,6 +168,8 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
 //                super.onSuccess(statusCode, headers, response);
                 Strip strip = new Strip((response));
+                if (strip == null)
+                    Log.d("xkcdxd", "strip is null");
                 if (number == -1)
                     latestStrip = strip;
                 displayComic(strip);
@@ -201,8 +218,10 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
             Toast.makeText(getActivity(), getString(R.string.toast_full_version_available), Toast.LENGTH_SHORT).show();
         wv.loadUrl(comic.getImage_url().toString());
         comicNumber.setText(Integer.toString(comic.getNum()));
-        ((MainActivity) getActivity()).mTitle = comic.getSafe_title();
-        ((MainActivity) getActivity()).restoreActionBar();
+        if (getActivity() != null) {
+            ((MainActivity) getActivity()).mTitle = comic.getSafe_title();
+            ((MainActivity) getActivity()).restoreActionBar();
+        }
     }
 
     @Override
@@ -228,6 +247,10 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
                     fetchComic();
                 else
                     fetchComic(currentStrip.getNum());
+                break;
+            case R.id.action_save:
+                reloadDialog.show();
+                new FetchImage().execute();
                 break;
             default:
                 break;
@@ -319,4 +342,76 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
         clipboard.setPrimaryClip(clip);
         Toast.makeText(getActivity(), getString(R.string.toast_alt_text_copied), Toast.LENGTH_SHORT).show();
     }
+
+    public void saveComicBitmapToDisk() {
+        String imageFileName = "xkcd_" + currentStrip.getNum() + ".png";
+        File storageDir = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES), getString(R.string.app_name));
+        if (!storageDir.exists())
+            storageDir.mkdirs();
+
+        File imageFile = new File(storageDir.getAbsolutePath() + "/" + imageFileName);
+        if (imageFile.exists()) {
+            Toast.makeText(getActivity(), "file already exists", Toast.LENGTH_SHORT).show();
+            reloadDialog.dismiss();
+            return;
+        }
+
+        FileOutputStream out = null;
+        try {
+            out = new FileOutputStream(imageFile.getAbsoluteFile());
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (out != null) {
+                    out.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        File f = new File(imageFile.getAbsolutePath());
+        Uri contentUri = Uri.fromFile(f);
+        mediaScanIntent.setData(contentUri);
+        getActivity().sendBroadcast(mediaScanIntent);
+
+        reloadDialog.dismiss();
+        Toast.makeText(getActivity(), "saved image " + imageFileName + " to " + storageDir.getAbsolutePath(), Toast.LENGTH_LONG).show();
+        bitmap = null;
+
+    }
+
+    private class FetchImage extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try {
+                URL postMediaUrl = new URL(currentStrip.getImg());
+                InputStream in = postMediaUrl.openStream();
+                bitmap = BitmapFactory.decodeStream(in);
+            } catch (MalformedURLException e) {
+                Log.e("xkcdxd", "Failed in creating URL");
+                e.printStackTrace();
+            } catch (IOException e) {
+                Log.e("xkcdxd", "Failed in Decoding Bitmap");
+                e.printStackTrace();
+            } catch (Exception e){
+                Log.e("xkcdxd", "Unknown exception");
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            saveComicBitmapToDisk();
+            reloadDialog.dismiss();
+            super.onPostExecute(aVoid);
+        }
+    }
+
 }
+
