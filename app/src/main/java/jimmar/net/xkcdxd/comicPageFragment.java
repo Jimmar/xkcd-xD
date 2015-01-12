@@ -25,7 +25,6 @@ import android.view.Window;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.NumberPicker;
 import android.widget.TextView;
@@ -43,12 +42,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collections;
 
 import jimmar.net.xkcdxd.classes.Strip;
 import jimmar.net.xkcdxd.helpers.connectionClient;
 
 
-public class comicPageFragment extends Fragment implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
+public class comicPageFragment extends Fragment implements View.OnClickListener {
 
     WebView wv;
     Strip currentStrip;
@@ -133,7 +133,7 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
         nextComicBtn = (ImageButton) rootView.findViewById(R.id.next_comic_btn);
         latestComicBtn = (ImageButton) rootView.findViewById(R.id.latest_comic_btn);
 
-        favoriteBtn.setOnCheckedChangeListener(this);
+        favoriteBtn.setOnClickListener(this);
         prevComicBtn.setOnClickListener(this);
         nextComicBtn.setOnClickListener(this);
         latestComicBtn.setOnClickListener(this);
@@ -216,6 +216,7 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
 
     public void displayComic(Strip comic) {
         currentStrip = comic;
+
         if (comic.getLink().length() > 3)
             Toast.makeText(getActivity(), getString(R.string.toast_full_version_available), Toast.LENGTH_SHORT).show();
         wv.loadUrl(comic.getImage_url().toString());
@@ -224,12 +225,23 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
             ((MainActivity) getActivity()).mTitle = comic.getSafe_title();
             ((MainActivity) getActivity()).restoreActionBar();
         }
+
+        for (int i = 0; i < MainActivity.favorites.size(); i++)
+            System.out.println(MainActivity.favorites.get(i));
+
+        if (Collections.binarySearch(MainActivity.favorites, comic.getNum()) >= 0) {
+            favoriteBtn.setChecked(true);
+            System.out.println("settings checked true");
+        } else {
+            favoriteBtn.setChecked(false);
+            System.out.println("settings checked false");
+        }
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        if (!((MainActivity) getActivity()).mNavigationDrawerFragment.isDrawerOpen())
-            inflater.inflate(R.menu.comic_page, menu);
+//        if (!((MainActivity) getActivity()).mNavigationDrawerFragment.isDrawerOpen())
+        inflater.inflate(R.menu.comic_page, menu);
 
         super.onCreateOptionsMenu(menu, inflater);
     }
@@ -316,14 +328,25 @@ public class comicPageFragment extends Fragment implements View.OnClickListener,
         } else if (v == nextComicBtn) {
             if (currentStrip.getNum() < latestStrip.getNum())
                 fetchComic(currentStrip.getNum() + 1);
+            else
+                Toast.makeText(getActivity(), getString(R.string.toast_latest_comic), Toast.LENGTH_SHORT).show();
         } else if (v == latestComicBtn) {
             fetchComic();
+        } else if (v == favoriteBtn) {
+            saveFavorite(favoriteBtn.isChecked());
         }
     }
 
-    @Override
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+    public void saveFavorite(boolean isChecked) {
         //TODO save as favorite/remove from favorite
+        if (isChecked) {
+            MainActivity.favorites.add(currentStrip.getNum());
+            Collections.sort(MainActivity.favorites);
+        } else {
+            int index = Collections.binarySearch(MainActivity.favorites, currentStrip.getNum());
+            MainActivity.favorites.remove(index);
+            Collections.sort(MainActivity.favorites);
+        }
     }
 
     public void shareCurrentComicAsLink() {

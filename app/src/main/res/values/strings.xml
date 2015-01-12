@@ -15,6 +15,7 @@
     <string name="toast_connection_failed">Connection Failed</string>
     <string name="toast_full_version_available">This comic is best viewed at the website\ntap the comic to show original</string>
     <string name="toast_alt_text_copied">Tooltip text has been copied to your clipboard</string>
+    <string name="toast_latest_comic">This is the latest comic</string>
 
     <string name="action_share_pic">Picture</string>
     <string name="action_share_link">Link</string>
