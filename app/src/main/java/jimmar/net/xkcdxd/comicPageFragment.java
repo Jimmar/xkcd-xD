@@ -48,7 +48,7 @@ import jimmar.net.xkcdxd.classes.Strip;
 import jimmar.net.xkcdxd.helpers.connectionClient;
 
 
-public class comicPageFragment extends Fragment implements View.OnClickListener {
+public class ComicPageFragment extends Fragment implements View.OnClickListener {
 
     WebView wv;
     Strip currentStrip;
@@ -72,7 +72,7 @@ public class comicPageFragment extends Fragment implements View.OnClickListener 
 
     boolean isShare = false;
 
-    public comicPageFragment() {
+    public ComicPageFragment() {
         // Required empty public constructor
     }
 
