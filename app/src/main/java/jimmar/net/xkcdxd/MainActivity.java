@@ -18,6 +18,7 @@ import android.webkit.WebView;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 
 public class MainActivity extends ActionBarActivity implements NavigationDrawerFragment.NavigationDrawerCallbacks {
@@ -31,7 +32,7 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
     public CharSequence mTitle;
-    public static ArrayList<Integer> favorites;
+    public static List favorites;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,7 +71,7 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
         SharedPreferences pref = this.getPreferences(MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         for (int i = 0; i < favorites.size(); i++) {
-            editor.putInt("favorite_" + i, favorites.get(i));
+            editor.putInt("favorite_" + i, (int) favorites.get(i));
         }
         editor.putInt("fav_latest_value", favorites.size());
         editor.commit();
