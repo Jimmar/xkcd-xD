@@ -1,6 +1,7 @@
 package jimmar.net.xkcdxd;
 
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.ListFragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,14 +33,23 @@ public class FavoritePageFragment extends ListFragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, (MainActivity.favorites));
         getListView().setAdapter(adapter);
-        if(adapter.getCount() > 0)
+        if (adapter.getCount() > 0)
             getView().findViewById(R.id.no_favorites_tv).setVisibility(View.GONE);
+
+        if (getActivity() != null) {
+            ((MainActivity) getActivity()).mTitle = "Favorites";
+            ((MainActivity) getActivity()).restoreActionBar();
+        }
         super.onViewCreated(view, savedInstanceState);
     }
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
-        //TODO handle clicks
+        Fragment fragment = new ComicPageFragment();
+        Bundle bundle = new Bundle();
+        bundle.putInt("comicNumber", (int) MainActivity.favorites.get(position));
+        fragment.setArguments(bundle);
+        ((MainActivity) getActivity()).switchContent(fragment);
     }
 }

@@ -142,8 +142,18 @@ public class ComicPageFragment extends Fragment implements View.OnClickListener 
         reloadDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         reloadDialog.setContentView(R.layout.dialog_loading);
         reloadDialog.setCancelable(false);
+        int num = 0;
+        try {
+            num = getArguments().getInt("comicNumber");
+        }
+        catch (Exception e){
 
-        fetchComic();
+        }
+
+        if (num == 0)
+            fetchComic();
+        else
+            fetchComic(num);
         return rootView;
     }
 

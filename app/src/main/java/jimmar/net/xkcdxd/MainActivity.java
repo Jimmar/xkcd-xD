@@ -48,10 +48,6 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
-//        FragmentManager fragmentManager = getSupportFragmentManager();
-//        fragmentManager.beginTransaction()
-//                .replace(R.id.container, new ComicPageFragment())
-//                .commit();
 
         favorites = retrieveFavorites();
     }
@@ -80,7 +76,6 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
     @Override
     public void onNavigationDrawerItemSelected(int position) {
         // update the main content by replacing fragments
-        FragmentManager fragmentManager = getSupportFragmentManager();
         Fragment fragment = null;
         switch (position) {
             case 0:
@@ -90,6 +85,12 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
                 fragment = new FavoritePageFragment();
                 break;
         }
+
+        switchContent(fragment);
+    }
+
+    public void switchContent(Fragment fragment) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.beginTransaction()
                 .replace(R.id.container, fragment).commit();
     }
@@ -187,4 +188,5 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
         saveFavorites();
         super.onPause();
     }
+
 }
