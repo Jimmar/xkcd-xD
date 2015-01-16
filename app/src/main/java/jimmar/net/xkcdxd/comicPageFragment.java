@@ -169,6 +169,8 @@ public class ComicPageFragment extends Fragment implements View.OnClickListener 
 
     public void fetchComic(final int number) {
         final String POST_NUMBER = number == -1 ? "" : Integer.toString(number) + "/";
+        wv.loadUrl("about:blank");
+        wv.clearHistory();
         connectionClient.get(POST_NUMBER, null, new JsonHttpResponseHandler() {
             public void onStart() {
                 reloadDialog.show();
@@ -235,15 +237,10 @@ public class ComicPageFragment extends Fragment implements View.OnClickListener 
             ((MainActivity) getActivity()).restoreActionBar();
         }
 
-        for (int i = 0; i < MainActivity.favorites.size(); i++)
-            System.out.println(MainActivity.favorites.get(i));
-
         if (Collections.binarySearch(MainActivity.favorites, comic.getNum()) >= 0) {
             favoriteBtn.setChecked(true);
-            System.out.println("settings checked true");
         } else {
             favoriteBtn.setChecked(false);
-            System.out.println("settings checked false");
         }
     }
 
@@ -287,7 +284,7 @@ public class ComicPageFragment extends Fragment implements View.OnClickListener 
         if (latestStrip == null)
             return;
         final Dialog d = new Dialog(getActivity());
-        d.setTitle("NumberPicker");
+        d.setTitle(getString(R.string.number_picker_title));
         d.setContentView(R.layout.dialog_number_picker);
         Button b1 = (Button) d.findViewById(R.id.submit_btn);
         final NumberPicker np = (NumberPicker) d.findViewById(R.id.numberPicker1);
@@ -444,7 +441,7 @@ public class ComicPageFragment extends Fragment implements View.OnClickListener 
 
         File imageFile = new File(storageDir.getAbsolutePath() + "/" + imageFileName);
         if (imageFile.exists()) {
-            Toast.makeText(getActivity(), "file already exists", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), getString(R.string.toast_comic_already_downloaded), Toast.LENGTH_SHORT).show();
             reloadDialog.dismiss();
             return;
         }
