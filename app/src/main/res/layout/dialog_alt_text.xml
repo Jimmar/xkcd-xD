@@ -11,12 +11,25 @@
         android:layout_margin="20dp"
         android:singleLine="false" />
 
-    <Button
-        android:id="@+id/show_more_btn"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/alt_text"
         android:layout_margin="10dp"
-        android:text="Show original"/>
+        android:layout_below="@id/alt_text">
+
+        <Button
+            android:id="@+id/show_more_btn"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Show original" />
+
+        <Button
+            android:id="@+id/explained_btn"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="explain" />
+    </LinearLayout>
 
 </RelativeLayout>

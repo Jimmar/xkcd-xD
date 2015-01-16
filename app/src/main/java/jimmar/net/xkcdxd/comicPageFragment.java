@@ -145,8 +145,7 @@ public class ComicPageFragment extends Fragment implements View.OnClickListener 
         int num = 0;
         try {
             num = getArguments().getInt("comicNumber");
-        }
-        catch (Exception e){
+        } catch (Exception e) {
 
         }
 
@@ -316,6 +315,7 @@ public class ComicPageFragment extends Fragment implements View.OnClickListener 
         TextView tv = (TextView) d.findViewById(R.id.alt_text);
         tv.setText(currentStrip.getAlt());
         Button showMoreBtn = (Button) d.findViewById(R.id.show_more_btn);
+        Button explainedButton = (Button) d.findViewById(R.id.explained_btn);
         if (currentStrip.getLink().length() < 3)
             showMoreBtn.setVisibility(View.GONE);
         else {
@@ -328,6 +328,15 @@ public class ComicPageFragment extends Fragment implements View.OnClickListener 
                 }
             });
         }
+        explainedButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String explained_link = String.format("http://www.explainxkcd.com/wiki/index.php/%s", Integer.toString(currentStrip.getNum()));
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(explained_link));
+                startActivity(browserIntent);
+                d.dismiss();
+            }
+        });
         d.show();
     }
 
