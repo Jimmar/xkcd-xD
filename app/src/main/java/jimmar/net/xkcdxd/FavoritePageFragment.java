@@ -1,20 +1,26 @@
 package jimmar.net.xkcdxd;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.ListFragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
+
+import java.util.List;
 
 /**
  * Created by Jimmar on 1/13/15.
  */
 public class FavoritePageFragment extends ListFragment {
 
-    ArrayAdapter<String> adapter;
+    ArrayAdapter<Integer> adapter;
+    //TODO create a class for the favorites
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,7 +37,9 @@ public class FavoritePageFragment extends ListFragment {
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
-        adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, (MainActivity.favorites));
+//        adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, (MainActivity.favorites));
+        Log.d("xkcdxd", "Size is " + MainActivity.favorites.size());
+        adapter = new FavAdapter(getActivity(), MainActivity.favorites);
         getListView().setAdapter(adapter);
         if (adapter.getCount() > 0)
             getView().findViewById(R.id.no_favorites_tv).setVisibility(View.GONE);
@@ -52,4 +60,28 @@ public class FavoritePageFragment extends ListFragment {
         fragment.setArguments(bundle);
         ((MainActivity) getActivity()).switchContent(fragment);
     }
+
+    public class FavAdapter extends ArrayAdapter<Integer> implements View.OnClickListener {
+
+        public FavAdapter(Context context, List<Integer> favorites) {
+            super(context, 0, favorites);
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+//            if (convertView == null)
+            convertView = LayoutInflater.from(getContext()).inflate(R.layout.fav_row, parent, false);
+            //TODO add a click listener for the favorite icon star
+            TextView favorite_number = (TextView) convertView.findViewById(R.id.favorite_number);
+
+            favorite_number.setText(Integer.toString(getItem(position)));
+            return convertView;
+        }
+
+        @Override
+        public void onClick(View v) {
+
+        }
+    }
+
 }
