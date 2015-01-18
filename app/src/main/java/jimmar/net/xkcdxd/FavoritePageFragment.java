@@ -9,9 +9,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -69,12 +71,31 @@ public class FavoritePageFragment extends ListFragment {
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-//            if (convertView == null)
-            convertView = LayoutInflater.from(getContext()).inflate(R.layout.fav_row, parent, false);
+            if (convertView == null)
+                convertView = LayoutInflater.from(getContext()).inflate(R.layout.fav_row, parent, false);
             //TODO add a click listener for the favorite icon star
-            TextView favorite_number = (TextView) convertView.findViewById(R.id.favorite_number);
+            final CheckBox fav_star = (CheckBox) convertView.findViewById(R.id.favorite_toggle);
+            fav_star.setChecked(true);
+            final int current_item = getItem(position);
 
+            TextView favorite_number = (TextView) convertView.findViewById(R.id.favorite_number);
             favorite_number.setText(Integer.toString(getItem(position)));
+
+            fav_star.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    //TODO save as favorite/remove from favorite
+                    if (fav_star.isChecked()) {
+                        MainActivity.favorites.add(current_item);
+                        Collections.sort(MainActivity.favorites);
+                    } else {
+                        int index = Collections.binarySearch(MainActivity.favorites, current_item);
+                        MainActivity.favorites.remove(index);
+                        Collections.sort(MainActivity.favorites);
+                    }
+                }
+            });
+
             return convertView;
         }
 
@@ -82,6 +103,7 @@ public class FavoritePageFragment extends ListFragment {
         public void onClick(View v) {
 
         }
+
     }
 
 }
