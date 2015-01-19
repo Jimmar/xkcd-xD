@@ -237,7 +237,7 @@ public class ComicPageFragment extends Fragment implements View.OnClickListener 
             ((MainActivity) getActivity()).restoreActionBar();
         }
 
-        if (Collections.binarySearch(MainActivity.favorites, comic.getNum()) >= 0) {
+        if (Collections.binarySearch(MainActivity.favorites, currentStrip.getNum() + " - " + currentStrip.getSafe_title()) >= 0) {
             favoriteBtn.setChecked(true);
         } else {
             favoriteBtn.setChecked(false);
@@ -356,10 +356,10 @@ public class ComicPageFragment extends Fragment implements View.OnClickListener 
     public void saveFavorite(boolean isChecked) {
         //TODO save as favorite/remove from favorite
         if (isChecked) {
-            MainActivity.favorites.add(currentStrip.getNum());
+            MainActivity.favorites.add(currentStrip.getNum() + " - " + currentStrip.getSafe_title());
             Collections.sort(MainActivity.favorites);
         } else {
-            int index = Collections.binarySearch(MainActivity.favorites, currentStrip.getNum());
+            int index = Collections.binarySearch(MainActivity.favorites, currentStrip.getNum() + " - " + currentStrip.getSafe_title());
             MainActivity.favorites.remove(index);
             Collections.sort(MainActivity.favorites);
         }

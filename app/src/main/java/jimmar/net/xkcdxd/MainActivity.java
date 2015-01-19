@@ -52,12 +52,12 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
         favorites = retrieveFavorites();
     }
 
-    public ArrayList<Integer> retrieveFavorites() {
+    public ArrayList<String> retrieveFavorites() {
         SharedPreferences pref = this.getPreferences(MODE_PRIVATE);
-        ArrayList<Integer> list = new ArrayList<>();
+        ArrayList<String> list = new ArrayList<>();
         int latestValue = pref.getInt("fav_latest_value", 0);
         for (int i = 0; i < latestValue; i++) {
-            list.add(pref.getInt("favorite_" + i, 0));
+            list.add(pref.getString("favorite_" + i, "0 - none"));
         }
         Collections.sort(list);
         return list;
@@ -67,7 +67,7 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
         SharedPreferences pref = this.getPreferences(MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         for (int i = 0; i < favorites.size(); i++) {
-            editor.putInt("favorite_" + i, (int) favorites.get(i));
+            editor.putString("favorite_" + i,favorites.get(i).toString());
         }
         editor.putInt("fav_latest_value", favorites.size());
         editor.commit();

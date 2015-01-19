@@ -13,7 +13,6 @@ import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -21,7 +20,7 @@ import java.util.List;
  */
 public class FavoritePageFragment extends ListFragment {
 
-    ArrayAdapter<Integer> adapter;
+    ArrayAdapter<String> adapter;
     //TODO create a class for the favorites
 
     public void onCreate(Bundle savedInstanceState) {
@@ -39,13 +38,13 @@ public class FavoritePageFragment extends ListFragment {
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
-//        adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, (MainActivity.favorites));
+        adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, MainActivity.favorites);
         Log.d("xkcdxd", "Size is " + MainActivity.favorites.size());
-        adapter = new FavAdapter(getActivity(), MainActivity.favorites);
+//        adapter = new FavAdapter(getActivity(),R.layout.fav_row ,MainActivity.favorites);
         getListView().setAdapter(adapter);
+
         if (adapter.getCount() > 0)
             getView().findViewById(R.id.no_favorites_tv).setVisibility(View.GONE);
-
         if (getActivity() != null) {
             ((MainActivity) getActivity()).mTitle = "Favorites";
             ((MainActivity) getActivity()).restoreActionBar();
@@ -58,16 +57,18 @@ public class FavoritePageFragment extends ListFragment {
         super.onListItemClick(l, v, position, id);
         Fragment fragment = new ComicPageFragment();
         Bundle bundle = new Bundle();
-        bundle.putInt("comicNumber", (int) MainActivity.favorites.get(position));
+        bundle.putInt("comicNumber", Integer.parseInt(MainActivity.favorites.get(position).toString().split("-")[0].trim()));
         fragment.setArguments(bundle);
         ((MainActivity) getActivity()).switchContent(fragment);
     }
 
     public class FavAdapter extends ArrayAdapter<Integer> implements View.OnClickListener {
 
-        public FavAdapter(Context context, List<Integer> favorites) {
-            super(context, 0, favorites);
+        public FavAdapter(Context context, int resourceId, List<Integer> favorites) {
+            super(context, resourceId, favorites);
+
         }
+
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
@@ -81,27 +82,27 @@ public class FavoritePageFragment extends ListFragment {
             TextView favorite_number = (TextView) convertView.findViewById(R.id.favorite_number);
             favorite_number.setText(Integer.toString(getItem(position)));
 
-            fav_star.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    //TODO save as favorite/remove from favorite
-                    if (fav_star.isChecked()) {
-                        MainActivity.favorites.add(current_item);
-                        Collections.sort(MainActivity.favorites);
-                    } else {
-                        int index = Collections.binarySearch(MainActivity.favorites, current_item);
-                        MainActivity.favorites.remove(index);
-                        Collections.sort(MainActivity.favorites);
-                    }
-                }
-            });
-
+//            fav_star.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    //TODO save as favorite/remove from favorite
+//                    if (fav_star.isChecked()) {
+//                        MainActivity.favorites.add(current_item);
+//                        Collections.sort(MainActivity.favorites);
+//                    } else {
+//                        int index = Collections.binarySearch(MainActivity.favorites, current_item);
+//                        MainActivity.favorites.remove(index);
+//                        Collections.sort(MainActivity.favorites);
+//                    }
+//                }
+//            });
+//            convertView.setOnClickListener(this);
             return convertView;
         }
 
         @Override
         public void onClick(View v) {
-
+            Log.d("xkcdxd", "view clicked");
         }
 
     }
