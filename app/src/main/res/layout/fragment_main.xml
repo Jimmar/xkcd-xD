@@ -9,7 +9,7 @@
         android:id="@+id/control_bar"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:background="#323232"
+        android:background="@color/myPrimaryColor"
         android:layout_alignParentTop="true"
         android:orientation="horizontal"
         android:padding="4dp"
@@ -45,6 +45,7 @@
             android:background="@android:color/white"
             android:layout_weight="1"
             android:gravity="center"
+            android:textColor="@android:color/black"
             android:text="#####" />
 
 
