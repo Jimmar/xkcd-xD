@@ -248,7 +248,6 @@ public class ComicPageFragment extends Fragment implements View.OnClickListener 
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 //        if (!((MainActivity) getActivity()).mNavigationDrawerFragment.isDrawerOpen())
         inflater.inflate(R.menu.comic_page, menu);
-
         super.onCreateOptionsMenu(menu, inflater);
     }
 

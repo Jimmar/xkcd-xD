@@ -35,7 +35,7 @@
             android:layout_height="wrap_content"
             android:background="@null"
             android:layout_weight="1"
-            android:src="@android:drawable/ic_media_previous" />
+            android:src="@drawable/ic_skip_previous_white_48dp" />
 
         <TextView
             android:id="@+id/comic_number"
@@ -55,7 +55,7 @@
             android:layout_height="wrap_content"
             android:background="@null"
             android:layout_weight="1"
-            android:src="@android:drawable/ic_media_next" />
+            android:src="@drawable/ic_skip_next_white_48dp" />
 
         <ImageButton
             android:id="@+id/latest_comic_btn"
@@ -63,7 +63,7 @@
             android:layout_height="wrap_content"
             android:background="@null"
             android:layout_weight="1"
-            android:src="@android:drawable/ic_media_ff" />
+            android:src="@drawable/ic_fast_forward_white_48dp" />
 
     </LinearLayout>
 
@@ -72,7 +72,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/webView"
-        android:layout_margin="2dp"/>
+        android:layout_margin="2dp" />
 
 
 </RelativeLayout>

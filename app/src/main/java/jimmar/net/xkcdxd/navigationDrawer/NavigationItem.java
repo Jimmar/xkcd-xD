@@ -14,10 +14,6 @@ public class NavigationItem {
         mDrawable = drawable;
     }
 
-    public NavigationItem(String text) {
-        new NavigationItem(text, null);
-    }
-
     public String getText() {
         return mText;
     }

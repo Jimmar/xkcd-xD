@@ -6,13 +6,13 @@
     <item
         android:id="@+id/action_refresh"
         android:title="refresh"
-        android:icon="@android:drawable/ic_popup_sync"
+        android:icon="@drawable/ic_sync_white_48dp"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/action_share"
         android:title="@string/share"
-        android:icon="@android:drawable/ic_menu_share"
+        android:icon="@drawable/ic_share_white_48dp"
         app:showAsAction="ifRoom">
         <menu>
             <item
