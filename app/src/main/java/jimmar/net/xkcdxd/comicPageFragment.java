@@ -31,6 +31,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.loopj.android.http.JsonHttpResponseHandler;
+import com.nispok.snackbar.Snackbar;
+import com.nispok.snackbar.SnackbarManager;
+import com.nispok.snackbar.enums.SnackbarType;
 
 import org.apache.http.Header;
 import org.json.JSONArray;
@@ -191,25 +194,34 @@ public class ComicPageFragment extends Fragment implements View.OnClickListener 
             @Override
             public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
                 super.onFailure(statusCode, headers, responseString, throwable);
-                Toast.makeText(getActivity(),
-                        getString(R.string.toast_connection_failed),
-                        Toast.LENGTH_LONG).show();
+//                Toast.makeText(getActivity(),
+//                        getString(R.string.toast_connection_failed),
+//                        Toast.LENGTH_LONG).show();
+                SnackbarManager.show(
+                        Snackbar.with(getActivity())
+                                .text(getString(R.string.toast_connection_failed)).duration(Snackbar.SnackbarDuration.LENGTH_INDEFINITE));
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
                 super.onFailure(statusCode, headers, throwable, errorResponse);
-                Toast.makeText(getActivity(),
-                        getString(R.string.toast_connection_failed),
-                        Toast.LENGTH_LONG).show();
+//                Toast.makeText(getActivity(),
+//                        getString(R.string.toast_connection_failed),
+//                        Toast.LENGTH_LONG).show();
+                SnackbarManager.show(
+                        Snackbar.with(getActivity())
+                                .text(getString(R.string.toast_connection_failed)).duration(Snackbar.SnackbarDuration.LENGTH_INDEFINITE));
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONArray errorResponse) {
                 super.onFailure(statusCode, headers, throwable, errorResponse);
-                Toast.makeText(getActivity(),
-                        getString(R.string.toast_connection_failed),
-                        Toast.LENGTH_LONG).show();
+//                Toast.makeText(getActivity(),
+//                        getString(R.string.toast_connection_failed),
+//                        Toast.LENGTH_LONG).show();
+                SnackbarManager.show(
+                        Snackbar.with(getActivity())
+                                .text(getString(R.string.toast_connection_failed)).duration(Snackbar.SnackbarDuration.LENGTH_INDEFINITE));
             }
 
             @Override
@@ -229,7 +241,10 @@ public class ComicPageFragment extends Fragment implements View.OnClickListener 
         currentStrip = comic;
 
         if (comic.getLink().length() > 3)
-            Toast.makeText(getActivity(), getString(R.string.toast_full_version_available), Toast.LENGTH_SHORT).show();
+//            Toast.makeText(getActivity(), getString(R.string.toast_full_version_available), Toast.LENGTH_SHORT).show();
+            SnackbarManager.show(
+                    Snackbar.with(getActivity())
+                            .text(getString(R.string.toast_full_version_available)).type(SnackbarType.MULTI_LINE).duration(Snackbar.SnackbarDuration.LENGTH_LONG));
         wv.loadUrl(comic.getImage_url().toString());
         comicNumber.setText(Integer.toString(comic.getNum()));
         if (getActivity() != null) {
@@ -344,7 +359,11 @@ public class ComicPageFragment extends Fragment implements View.OnClickListener 
             if (currentStrip.getNum() < latestStrip.getNum())
                 fetchComic(currentStrip.getNum() + 1);
             else
-                Toast.makeText(getActivity(), getString(R.string.toast_latest_comic), Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getActivity(), getString(R.string.toast_latest_comic), Toast.LENGTH_SHORT).show();
+                SnackbarManager.show(
+                        Snackbar.with(getActivity())
+                                .text(getString(R.string.toast_latest_comic)).duration(Snackbar.SnackbarDuration.LENGTH_SHORT));
+
         } else if (v == latestComicBtn) {
             fetchComic();
         } else if (v == favoriteBtn) {
@@ -440,7 +459,11 @@ public class ComicPageFragment extends Fragment implements View.OnClickListener 
 
         File imageFile = new File(storageDir.getAbsolutePath() + "/" + imageFileName);
         if (imageFile.exists()) {
-            Toast.makeText(getActivity(), getString(R.string.toast_comic_already_downloaded), Toast.LENGTH_SHORT).show();
+//            Toast.makeText(getActivity(), getString(R.string.toast_comic_already_downloaded), Toast.LENGTH_SHORT).show();
+            SnackbarManager.show(
+                    Snackbar.with(getActivity())
+                            .text(getString(R.string.toast_comic_already_downloaded))
+                            .duration(Snackbar.SnackbarDuration.LENGTH_SHORT));
             reloadDialog.dismiss();
             return;
         }
@@ -454,7 +477,11 @@ public class ComicPageFragment extends Fragment implements View.OnClickListener 
         getActivity().sendBroadcast(mediaScanIntent);
 
         reloadDialog.dismiss();
-        Toast.makeText(getActivity(), "saved image " + imageFileName + " to " + storageDir.getAbsolutePath(), Toast.LENGTH_LONG).show();
+//        Toast.makeText(getActivity(), "saved image " + imageFileName + " to " + storageDir.getAbsolutePath(), Toast.LENGTH_LONG).show();
+        SnackbarManager.show(
+                Snackbar.with(getActivity())
+                        .text("saved image " + imageFileName + " to " + storageDir.getAbsolutePath())
+                        .type(SnackbarType.MULTI_LINE).duration(Snackbar.SnackbarDuration.LENGTH_LONG));
         bitmap = null;
     }
 
