@@ -38,15 +38,15 @@ public class FavoritePageFragment extends ListFragment {
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
-        adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, MainActivity.favorites);
-        Log.d("xkcdxd", "Size is " + MainActivity.favorites.size());
+        adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, MainActivity.Companion.getFavorites());
+        Log.d("xkcdxd", "Size is " + MainActivity.Companion.getFavorites().size());
 //        adapter = new FavAdapter(getActivity(),R.layout.fav_row ,MainActivity.favorites);
         getListView().setAdapter(adapter);
 
         if (adapter.getCount() > 0)
             getView().findViewById(R.id.no_favorites_tv).setVisibility(View.GONE);
         if (getActivity() != null) {
-            ((MainActivity) getActivity()).mTitle = "Favorites";
+            ((MainActivity) getActivity()).setMTitle("Favorites");
             ((MainActivity) getActivity()).restoreActionBar();
         }
         super.onViewCreated(view, savedInstanceState);
@@ -57,7 +57,7 @@ public class FavoritePageFragment extends ListFragment {
         super.onListItemClick(l, v, position, id);
         Fragment fragment = new ComicPageFragment();
         Bundle bundle = new Bundle();
-        bundle.putInt("comicNumber", Integer.parseInt(MainActivity.favorites.get(position).toString().split("-")[0].trim()));
+        bundle.putInt("comicNumber", Integer.parseInt(MainActivity.Companion.getFavorites().get(position).toString().split("-")[0].trim()));
         fragment.setArguments(bundle);
         ((MainActivity) getActivity()).switchContent(fragment);
     }

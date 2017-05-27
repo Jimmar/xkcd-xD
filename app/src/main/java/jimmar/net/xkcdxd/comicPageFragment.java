@@ -182,7 +182,7 @@ public class ComicPageFragment extends Fragment implements View.OnClickListener 
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-//                super.onSuccess(statusCode, headers, response);
+                super.onSuccess(statusCode, headers, response);
                 Strip strip = new Strip((response));
                 if (strip == null)
                     Log.d("xkcdxd", "strip is null");
@@ -248,11 +248,11 @@ public class ComicPageFragment extends Fragment implements View.OnClickListener 
         wv.loadUrl(comic.getImage_url().toString());
         comicNumber.setText(Integer.toString(comic.getNum()));
         if (getActivity() != null) {
-            ((MainActivity) getActivity()).mTitle = comic.getSafe_title();
+            ((MainActivity) getActivity()).setMTitle(comic.getSafe_title());
             ((MainActivity) getActivity()).restoreActionBar();
         }
 
-        if (Collections.binarySearch(MainActivity.favorites, currentStrip.getNum() + " - " + currentStrip.getSafe_title()) >= 0) {
+        if (Collections.binarySearch(MainActivity.Companion.getFavorites(), currentStrip.getNum() + " - " + currentStrip.getSafe_title()) >= 0) {
             favoriteBtn.setChecked(true);
         } else {
             favoriteBtn.setChecked(false);
@@ -374,12 +374,12 @@ public class ComicPageFragment extends Fragment implements View.OnClickListener 
     public void saveFavorite(boolean isChecked) {
         //TODO save as favorite/remove from favorite
         if (isChecked) {
-            MainActivity.favorites.add(currentStrip.getNum() + " - " + currentStrip.getSafe_title());
-            Collections.sort(MainActivity.favorites);
+            MainActivity.Companion.getFavorites().add(currentStrip.getNum() + " - " + currentStrip.getSafe_title());
+            Collections.sort(MainActivity.Companion.getFavorites());
         } else {
-            int index = Collections.binarySearch(MainActivity.favorites, currentStrip.getNum() + " - " + currentStrip.getSafe_title());
-            MainActivity.favorites.remove(index);
-            Collections.sort(MainActivity.favorites);
+            int index = Collections.binarySearch(MainActivity.Companion.getFavorites(), currentStrip.getNum() + " - " + currentStrip.getSafe_title());
+            MainActivity.Companion.getFavorites().remove(index);
+            Collections.sort(MainActivity.Companion.getFavorites());
         }
     }
 
