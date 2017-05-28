@@ -30,6 +30,7 @@ import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.nispok.snackbar.Snackbar;
 import com.nispok.snackbar.SnackbarManager;
@@ -183,7 +184,8 @@ public class ComicPageFragment extends Fragment implements View.OnClickListener 
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 super.onSuccess(statusCode, headers, response);
-                Strip strip = new Strip((response));
+                Gson gson = new Gson();
+                Strip strip = gson.fromJson(response.toString(), Strip.class);
                 if (strip == null)
                     Log.d("xkcdxd", "strip is null");
                 if (number == -1)
@@ -245,7 +247,7 @@ public class ComicPageFragment extends Fragment implements View.OnClickListener 
             SnackbarManager.show(
                     Snackbar.with(getActivity())
                             .text(getString(R.string.toast_full_version_available)).type(SnackbarType.MULTI_LINE).duration(Snackbar.SnackbarDuration.LENGTH_LONG));
-        wv.loadUrl(comic.getImage_url().toString());
+        wv.loadUrl(comic.getImg());
         comicNumber.setText(Integer.toString(comic.getNum()));
         if (getActivity() != null) {
             ((MainActivity) getActivity()).setMTitle(comic.getSafe_title());
