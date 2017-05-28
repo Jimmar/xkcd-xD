@@ -17,8 +17,6 @@ class MainActivity : ActionBarActivity(), NavigationDrawerCallbacks {
     private var mToolbar: Toolbar? = null
     private lateinit var mNavigationDrawerFragment: NavigationDrawerFragment
 
-    lateinit var mTitle: CharSequence
-
     companion object {
         lateinit var favorites: List<String>
     }
@@ -26,8 +24,6 @@ class MainActivity : ActionBarActivity(), NavigationDrawerCallbacks {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        mTitle = title
 
         mToolbar = findViewById(R.id.toolbar_actionbar) as Toolbar
         setSupportActionBar(mToolbar)
@@ -71,15 +67,15 @@ class MainActivity : ActionBarActivity(), NavigationDrawerCallbacks {
 
     private fun onSectionAttached(number: Int) {
         when (number) {
-            1 -> mTitle = getString(R.string.title_section1)
-            2 -> mTitle = getString(R.string.title_section2)
+            1 -> title = getString(R.string.title_section1)
+            2 -> title = getString(R.string.title_section2)
         }
     }
 
     fun restoreActionBar() {
         supportActionBar!!.navigationMode = ActionBar.NAVIGATION_MODE_STANDARD
         supportActionBar!!.setDisplayShowTitleEnabled(true)
-        supportActionBar!!.title = mTitle
+        supportActionBar!!.title = title
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -95,6 +91,10 @@ class MainActivity : ActionBarActivity(), NavigationDrawerCallbacks {
             return true
 
         return super.onOptionsItemSelected(item)
+    }
+
+    fun setMTitle(mTitle: String){
+        title = mTitle
     }
 
 }
