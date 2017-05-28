@@ -533,6 +533,4 @@ public class ComicPageFragment extends Fragment implements View.OnClickListener 
             super.onCancelled(aVoid);
         }
     }
-
 }
-
