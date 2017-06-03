@@ -18,7 +18,7 @@ class MainActivity : ActionBarActivity(), NavigationDrawerCallbacks {
     private lateinit var mNavigationDrawerFragment: NavigationDrawerFragment
 
     companion object {
-        lateinit var favorites: List<String>
+        lateinit var favorites: MutableList<String>
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,7 +34,7 @@ class MainActivity : ActionBarActivity(), NavigationDrawerCallbacks {
         favorites = retrieveFavorites()
     }
 
-    private fun retrieveFavorites(): List<String> {
+    private fun retrieveFavorites(): MutableList<String> {
         val pref = getPreferences(Context.MODE_PRIVATE)
         val list = mutableListOf<String>()
         val latestValue = pref.getInt("fav_latest_value", 0)
@@ -97,4 +97,8 @@ class MainActivity : ActionBarActivity(), NavigationDrawerCallbacks {
         title = mTitle
     }
 
+    override fun onPause() {
+        saveFavorites()
+        super.onPause()
+    }
 }
