@@ -12,20 +12,14 @@ import android.os.AsyncTask
 import android.os.Bundle
 import android.os.Environment
 import android.support.v4.app.Fragment
-import android.util.Log
 import android.view.*
 import android.webkit.WebView
 import android.widget.*
-import com.google.gson.Gson
-import com.loopj.android.http.JsonHttpResponseHandler
 import com.nispok.snackbar.Snackbar
 import com.nispok.snackbar.SnackbarManager
 import com.nispok.snackbar.enums.SnackbarType
 import jimmar.net.xkcdxd.classes.Strip
-import jimmar.net.xkcdxd.helpers.connectionClient
-import org.apache.http.Header
-import org.json.JSONArray
-import org.json.JSONObject
+import jimmar.net.xkcdxd.helpers.RestAPI
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
@@ -39,6 +33,8 @@ class ComicPageFragment : Fragment() {
     var currentStrip: Strip? = null
     var latestStrip: Strip? = null
     var touchState = false
+
+    val EXPLAIN_URL = "http://www.explainxkcd.com/wiki/index.php/"
 
     private var MOVE_THRESHOLD_DP: Float = 0.toFloat()
     private var mDownPosX: Float = 0.toFloat()
@@ -60,29 +56,17 @@ class ComicPageFragment : Fragment() {
         super.onCreate(savedInstanceState)
         MOVE_THRESHOLD_DP = 20 * activity.resources.displayMetrics.density
         setHasOptionsMenu(true)
-        connectionClient.init()
     }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val rootView = inflater!!.inflate(R.layout.fragment_main, container, false)
         wv = rootView.findViewById(R.id.webView) as WebView
-        print(wv)
         wv.settings.builtInZoomControls = true
-        wv.settings.displayZoomControls = true
-        touchState = false
+        wv.settings.displayZoomControls = false
 
         //TODO: redo this into a better looking code
         wv.setOnTouchListener { v, event ->
             when (event.action and MotionEvent.ACTION_MASK) {
-                MotionEvent.ACTION_POINTER_DOWN -> {
-                    if (touchState) {
-                        touchState = false
-                    } else {
-                        touchState = true
-                        mDownPosX = event.x
-                        mDownPosY = event.y
-                    }
-                }
                 MotionEvent.ACTION_DOWN -> {
                     touchState = true
                     mDownPosX = event.x
@@ -114,11 +98,11 @@ class ComicPageFragment : Fragment() {
         reloadDialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
         reloadDialog.setContentView(R.layout.dialog_loading)
         reloadDialog.setCancelable(false)
-        
+
         var num = -1
-        if(arguments != null)
+        if (arguments != null)
             num = arguments.getInt("comicNumber", 0)
-            
+
         fetchComic(num)
 
         return rootView
@@ -131,57 +115,24 @@ class ComicPageFragment : Fragment() {
                     .duration(Snackbar.SnackbarDuration.LENGTH_SHORT))
             return
         }
-        val POST_NUMBER = if (number == -1) "" else "$number/"
         wv.loadUrl("about:blank")
         wv.clearHistory()
-        
-        Log.d("xkcdkc", "fetchComic")
-        connectionClient.get(POST_NUMBER, null, object : JsonHttpResponseHandler() {
-            override fun onStart() {
-                reloadDialog.show()
-                Log.d("xkcdkc", "starting")
-                super.onStart()
-            }
 
-            override fun onSuccess(statusCode: Int, headers: Array<out Header>?, response: JSONObject?) {
-                super.onSuccess(statusCode, headers, response)
-                val gson = Gson()
-                val strip = gson.fromJson(response.toString(), Strip::class.java)
-                latestStrip = if (number == -1) strip else latestStrip
-                displayComic(strip)
-            }
-
-            override fun onFailure(statusCode: Int, headers: Array<out Header>?, responseString: String?, throwable: Throwable?) {
-                SnackbarManager.show(Snackbar.with(activity)
-                        .text(getString(R.string.toast_connection_failed))
-                        .duration(Snackbar.SnackbarDuration.LENGTH_SHORT))
-                super.onFailure(statusCode, headers, responseString, throwable)
-            }
-
-            override fun onFailure(statusCode: Int, headers: Array<out Header>?, throwable: Throwable?, errorResponse: JSONObject?) {
-                SnackbarManager.show(Snackbar.with(activity)
-                        .text(getString(R.string.toast_connection_failed))
-                        .duration(Snackbar.SnackbarDuration.LENGTH_SHORT))
-                super.onFailure(statusCode, headers, throwable, errorResponse)
-            }
-
-            override fun onFailure(statusCode: Int, headers: Array<out Header>?, throwable: Throwable?, errorResponse: JSONArray?) {
-                SnackbarManager.show(Snackbar.with(activity)
-                        .text(getString(R.string.toast_connection_failed))
-                        .duration(Snackbar.SnackbarDuration.LENGTH_SHORT))
-                super.onFailure(statusCode, headers, throwable, errorResponse)
-                
-            }
-            
-            override fun onFinish() {
-                reloadDialog.dismiss()
-                super.onFinish()
-            }
-        })
+        val restApi: RestAPI = RestAPI(onSuccess = { displayComic(it) }, onFailure = { fetchingComicFailed() })
+        reloadDialog.show()
+        if (number == -1) {
+            //TODO save latest comic in latestComic
+            restApi.getLatestStrip().enqueue(restApi)
+        } else {
+            restApi.getStrip(number).enqueue(restApi)
+        }
     }
 
     fun displayComic(comic: Strip) {
         currentStrip = comic
+        //if latest strip is null then this is the first strip
+        if (latestStrip == null)
+            latestStrip = currentStrip
 
         if (comic.link.length > 3)
             SnackbarManager.show(Snackbar.with(activity)
@@ -193,6 +144,14 @@ class ComicPageFragment : Fragment() {
         (activity as MainActivity).restoreActionBar()
         favoriteBtn.isChecked = MainActivity.Companion.favorites.binarySearch(
                 "${currentStrip!!.num} - ${currentStrip!!.safe_title}") >= 0
+        reloadDialog.dismiss()
+    }
+
+    fun fetchingComicFailed() {
+        SnackbarManager.show(
+                Snackbar.with(activity)
+                        .text(getString(R.string.toast_connection_failed))
+                        .duration(Snackbar.SnackbarDuration.LENGTH_SHORT))
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
@@ -250,13 +209,14 @@ class ComicPageFragment : Fragment() {
 
         showMoreBtn.setOnClickListener { openLinkAndDismissDialog(currentStrip!!.link, d) }
         explainedButton.setOnClickListener {
-            openLinkAndDismissDialog("http://www.explainxkcd.com/wiki/index.php/${currentStrip!!.num}", d)
+            openLinkAndDismissDialog(EXPLAIN_URL + currentStrip!!.num, d)
         }
 
         if (currentStrip!!.link.length < 3) showMoreBtn.visibility = View.GONE
 
         d.show()
     }
+
 
     fun openLinkAndDismissDialog(link: String, dialog: Dialog?) {
         val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
@@ -366,5 +326,3 @@ class ComicPageFragment : Fragment() {
         }
     }
 }
-
-
