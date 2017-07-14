@@ -35,4 +35,5 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile 'com.squareup.retrofit2:retrofit:2.3.0'
     compile "com.squareup.retrofit2:converter-moshi:2.3.0"
+    compile 'com.squareup.picasso:picasso:2.5.2'
 }

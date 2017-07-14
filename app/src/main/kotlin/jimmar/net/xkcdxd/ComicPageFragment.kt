@@ -64,8 +64,8 @@ class ComicPageFragment : Fragment() {
         wv.settings.builtInZoomControls = true
         wv.settings.displayZoomControls = false
 
-        //TODO: redo this into a better looking code
-        wv.setOnTouchListener { v, event ->
+        // to get the tap actions
+        wv.setOnTouchListener { _, event ->
             when (event.action and MotionEvent.ACTION_MASK) {
                 MotionEvent.ACTION_DOWN -> {
                     touchState = true
@@ -121,7 +121,6 @@ class ComicPageFragment : Fragment() {
         val restApi: RestAPI = RestAPI(onSuccess = { displayComic(it) }, onFailure = { fetchingComicFailed() })
         reloadDialog.show()
         if (number == -1) {
-            //TODO save latest comic in latestComic
             restApi.getLatestStrip().enqueue(restApi)
         } else {
             restApi.getStrip(number).enqueue(restApi)
