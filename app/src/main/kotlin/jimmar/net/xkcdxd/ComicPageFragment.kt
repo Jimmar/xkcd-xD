@@ -54,11 +54,12 @@ class ComicPageFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        MOVE_THRESHOLD_DP = 20 * activity.resources.displayMetrics.density
+        MOVE_THRESHOLD_DP = 20 * activity!!.resources.displayMetrics.density
         setHasOptionsMenu(true)
     }
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val rootView = inflater!!.inflate(R.layout.fragment_main, container, false)
         wv = rootView.findViewById(R.id.webView) as WebView
         wv.settings.builtInZoomControls = true
@@ -101,7 +102,7 @@ class ComicPageFragment : Fragment() {
 
         var num = -1
         if (arguments != null)
-            num = arguments.getInt("comicNumber", 0)
+            num = arguments!!.getInt("comicNumber", 0)
 
         fetchComic(num)
 
@@ -246,11 +247,11 @@ class ComicPageFragment : Fragment() {
     }
 
     fun shareCurrentComicAsPicture() {
-        val outputDir = activity.externalCacheDir
+        val outputDir = activity!!.externalCacheDir
         val outputFile = File.createTempFile("shareTemp", "png", outputDir)
         saveBitmapToDisk(bitmap, outputFile.absolutePath)
 
-        val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clipboard = activity!!.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.primaryClip = ClipData.newPlainText("Alt text", currentStrip!!.alt)
 
         val share = Intent(Intent.ACTION_SEND)
@@ -290,7 +291,7 @@ class ComicPageFragment : Fragment() {
         val f = File(imageFile.absolutePath)
         val contentUri = Uri.fromFile(f)
         mediaScanIntent.data = contentUri
-        activity.sendBroadcast(mediaScanIntent)
+        activity!!.sendBroadcast(mediaScanIntent)
         reloadDialog.dismiss()
         SnackbarManager.show(
                 Snackbar.with(activity)

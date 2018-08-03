@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.ListView
+import android.widget.TextView
 
 /**
  * Created by Jimmar on 29/5/17.
@@ -23,8 +24,9 @@ class FavoritePageFragment : ListFragment() {
         val adapter = ArrayAdapter(activity, android.R.layout.simple_list_item_1, MainActivity.Companion.favorites)
         listView.adapter = adapter
 
+        
         if (adapter.count > 0)
-            view.findViewById(R.id.no_favorites_tv).visibility = View.GONE
+            view.findViewById<TextView>(R.id.no_favorites_tv).visibility = View.GONE
 
         if (activity == null) {
             (activity as MainActivity).title = "Favorites"

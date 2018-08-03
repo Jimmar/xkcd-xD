@@ -5,14 +5,14 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.widget.DrawerLayout
 import android.support.v7.app.ActionBar
-import android.support.v7.app.ActionBarActivity
+import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.Toolbar
 import android.view.Menu
 import android.view.MenuItem
 import jimmar.net.xkcdxd.navigationDrawer.NavigationDrawerCallbacks
 import jimmar.net.xkcdxd.navigationDrawer.NavigationDrawerFragment
 
-class MainActivity : ActionBarActivity(), NavigationDrawerCallbacks {
+class MainActivity : AppCompatActivity(), NavigationDrawerCallbacks {
 
     private var mToolbar: Toolbar? = null
     private lateinit var mNavigationDrawerFragment: NavigationDrawerFragment
