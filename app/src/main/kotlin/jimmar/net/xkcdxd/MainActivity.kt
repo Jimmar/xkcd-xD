@@ -62,7 +62,7 @@ class MainActivity : AppCompatActivity(), NavigationDrawerCallbacks {
     }
 
     fun switchContent(fragment: Fragment?) {
-        supportFragmentManager.beginTransaction().replace(R.id.container, fragment).commit()
+        fragment?.let { supportFragmentManager.beginTransaction().replace(R.id.container, it).commit() }
     }
 
     private fun onSectionAttached(number: Int) {
