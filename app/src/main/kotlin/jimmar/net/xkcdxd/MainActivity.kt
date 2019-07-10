@@ -3,7 +3,6 @@ package jimmar.net.xkcdxd
 import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.support.v4.widget.DrawerLayout
 import android.support.v7.app.ActionBar
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.Toolbar
@@ -25,11 +24,12 @@ class MainActivity : AppCompatActivity(), NavigationDrawerCallbacks {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        mToolbar = findViewById(R.id.toolbar_actionbar) as Toolbar
+
+        mToolbar = findViewById(R.id.toolbar_actionbar)
         setSupportActionBar(mToolbar)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-        mNavigationDrawerFragment = fragmentManager.findFragmentById(R.id.fragment_drawer) as NavigationDrawerFragment
-        mNavigationDrawerFragment.setup(R.id.fragment_drawer, findViewById(R.id.drawer) as DrawerLayout, mToolbar)
+        mNavigationDrawerFragment = supportFragmentManager.findFragmentById(R.id.fragment_drawer) as NavigationDrawerFragment
+        mNavigationDrawerFragment.setup(R.id.fragment_drawer, findViewById(R.id.drawer), mToolbar)
 
         favorites = retrieveFavorites()
     }
@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity(), NavigationDrawerCallbacks {
         val list = mutableListOf<String>()
         val latestValue = pref.getInt("fav_latest_value", 0)
 
-        (0 until latestValue).mapTo(list) { pref.getString("favorite_$it", "0 - none") }
+        (0 until latestValue).mapTo(list) { pref.getString("favorite_$it", "0 - none")!! }
         list.sort()
         return list
     }
@@ -93,7 +93,7 @@ class MainActivity : AppCompatActivity(), NavigationDrawerCallbacks {
         return super.onOptionsItemSelected(item)
     }
 
-    fun setMTitle(mTitle: String){
+    fun setMTitle(mTitle: String) {
         title = mTitle
     }
 

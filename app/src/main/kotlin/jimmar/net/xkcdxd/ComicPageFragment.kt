@@ -1,5 +1,6 @@
 package jimmar.net.xkcdxd
 
+import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -24,28 +25,25 @@ import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
 
+
 /**
  * Created by Jimmar on 2/6/17.
  */
 
+const val EXPLAIN_URL = "http://www.explainxkcd.com/wiki/index.php/"
+
 class ComicPageFragment : Fragment() {
-    lateinit var wv: WebView
     var currentStrip: Strip? = null
-    var latestStrip: Strip? = null
-    var touchState = false
 
-    val EXPLAIN_URL = "http://www.explainxkcd.com/wiki/index.php/"
+    private lateinit var wv: WebView
+    private var latestStrip: Strip? = null
 
-    private var MOVE_THRESHOLD_DP: Float = 0.toFloat()
-    private var mDownPosX: Float = 0.toFloat()
-    private var mDownPosY: Float = 0.toFloat()
+    private lateinit var comicNumber: TextView
 
-    lateinit var comicNumber: TextView
-
-    lateinit var favoriteBtn: CheckBox
-    lateinit var prevComicBtn: ImageButton
-    lateinit var nextComicBtn: ImageButton
-    lateinit var latestComicBtn: ImageButton
+    private lateinit var favoriteBtn: CheckBox
+    private lateinit var prevComicBtn: ImageButton
+    private lateinit var nextComicBtn: ImageButton
+    private lateinit var latestComicBtn: ImageButton
 
     lateinit var reloadDialog: Dialog
     internal var bitmap: Bitmap? = null
@@ -54,62 +52,51 @@ class ComicPageFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        MOVE_THRESHOLD_DP = 20 * activity!!.resources.displayMetrics.density
         setHasOptionsMenu(true)
     }
 
-
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val rootView = inflater!!.inflate(R.layout.fragment_main, container, false)
-        wv = rootView.findViewById(R.id.webView) as WebView
-        wv.settings.builtInZoomControls = true
-        wv.settings.displayZoomControls = false
+        val rootView = inflater.inflate(R.layout.fragment_main, container, false)
 
-        // to get the tap actions
-        wv.setOnTouchListener { _, event ->
-            when (event.action and MotionEvent.ACTION_MASK) {
-                MotionEvent.ACTION_DOWN -> {
-                    touchState = true
-                    mDownPosX = event.x
-                    mDownPosY = event.y
+        wv = rootView.findViewById(R.id.webView)
+
+        with(wv) {
+            settings.builtInZoomControls = true
+            settings.displayZoomControls = false
+            setOnTouchListener { v, event ->
+                when (event?.action) {
+                    MotionEvent.ACTION_DOWN -> showAltText()
                 }
-                MotionEvent.ACTION_UP -> if (touchState) {
-                    showAltText()
-                }
-                MotionEvent.ACTION_MOVE -> if (Math.abs(event.x - mDownPosX) > MOVE_THRESHOLD_DP || Math.abs(event.y - mDownPosY) > MOVE_THRESHOLD_DP)
-                    touchState = false
+                v?.onTouchEvent(event) ?: true
             }
-            false
         }
 
         comicNumber = rootView.findViewById(R.id.comic_number) as TextView
-        comicNumber.setOnClickListener { showNumberPicker() }
-
         favoriteBtn = rootView.findViewById(R.id.favorite_toggle) as CheckBox
         prevComicBtn = rootView.findViewById(R.id.prev_comic_btn) as ImageButton
         nextComicBtn = rootView.findViewById(R.id.next_comic_btn) as ImageButton
         latestComicBtn = rootView.findViewById(R.id.latest_comic_btn) as ImageButton
 
+        comicNumber.setOnClickListener { showNumberPicker() }
         favoriteBtn.setOnClickListener { saveFavorite(favoriteBtn.isChecked) }
         prevComicBtn.setOnClickListener { fetchComic(currentStrip!!.num - 1) }
         nextComicBtn.setOnClickListener { fetchComic(currentStrip!!.num + 1) }
         latestComicBtn.setOnClickListener { fetchComic(-1) }
 
-        reloadDialog = Dialog(activity)
-        reloadDialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        reloadDialog.setContentView(R.layout.dialog_loading)
-        reloadDialog.setCancelable(false)
+        reloadDialog = Dialog(activity).apply {
+            requestWindowFeature(Window.FEATURE_NO_TITLE)
+            setContentView(R.layout.dialog_loading)
+            setCancelable(false)
+        }
 
-        var num = -1
-        if (arguments != null)
-            num = arguments!!.getInt("comicNumber", 0)
-
+        val num = arguments?.getInt("comicNumber", 0) ?: -1
         fetchComic(num)
 
         return rootView
     }
 
-    fun fetchComic(number: Int) {
+    private fun fetchComic(number: Int) {
         if (number > latestStrip?.num ?: Int.MAX_VALUE) {
             SnackbarManager.show(Snackbar.with(activity)
                     .text(getString(R.string.toast_latest_comic))
@@ -119,39 +106,45 @@ class ComicPageFragment : Fragment() {
         wv.loadUrl("about:blank")
         wv.clearHistory()
 
-        val restApi: RestAPI = RestAPI(onSuccess = { displayComic(it) }, onFailure = { fetchingComicFailed() })
+        val restApi = RestAPI(onSuccess = { displayComic(it) }, onFailure = { fetchingComicFailed() })
+
         reloadDialog.show()
-        if (number == -1) {
+
+        if (number == -1)
             restApi.getLatestStrip().enqueue(restApi)
-        } else {
+        else
             restApi.getStrip(number).enqueue(restApi)
-        }
     }
 
-    fun displayComic(comic: Strip) {
+    private fun displayComic(comic: Strip) {
         currentStrip = comic
         //if latest strip is null then this is the first strip
-        if (latestStrip == null)
-            latestStrip = currentStrip
+        latestStrip = latestStrip ?: currentStrip
 
         if (comic.link.length > 3)
             SnackbarManager.show(Snackbar.with(activity)
                     .text(getString(R.string.toast_full_version_available))
                     .type(SnackbarType.MULTI_LINE))
+
         wv.loadUrl(comic.img)
+
         comicNumber.text = comic.num.toString()
+
         (activity as MainActivity).setMTitle(comic.safe_title)
         (activity as MainActivity).restoreActionBar()
-        favoriteBtn.isChecked = MainActivity.Companion.favorites.binarySearch(
+
+        favoriteBtn.isChecked = MainActivity.favorites.binarySearch(
                 "${currentStrip!!.num} - ${currentStrip!!.safe_title}") >= 0
+
         reloadDialog.dismiss()
     }
 
-    fun fetchingComicFailed() {
+    private fun fetchingComicFailed() {
         SnackbarManager.show(
                 Snackbar.with(activity)
                         .text(getString(R.string.toast_connection_failed))
                         .duration(Snackbar.SnackbarDuration.LENGTH_SHORT))
+        reloadDialog.dismiss()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
@@ -160,8 +153,7 @@ class ComicPageFragment : Fragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        val id = item?.itemId
-        when (id) {
+        when (item?.itemId) {
             R.id.action_share_pic -> {
                 isShare = true
                 FetchImage().execute()
@@ -176,18 +168,23 @@ class ComicPageFragment : Fragment() {
         return super.onOptionsItemSelected(item)
     }
 
-    fun showNumberPicker() {
+    private fun showNumberPicker() {
         if (latestStrip == null)
             return
-        val d = Dialog(activity)
-        d.setTitle(getString(R.string.number_picker_title))
-        d.setContentView(R.layout.dialog_number_picker)
-        val b1 = d.findViewById((R.id.submit_btn)) as Button
+        val d = Dialog(activity!!.applicationContext).apply {
+            setTitle(getString(R.string.number_picker_title))
+            setContentView(R.layout.dialog_number_picker)
+        }
+
         val np = d.findViewById(R.id.numberPicker1) as NumberPicker
-        np.maxValue = latestStrip!!.num
-        np.minValue = 1
-        np.value = currentStrip!!.num
-        np.wrapSelectorWheel = true
+        with(np) {
+            maxValue = latestStrip!!.num
+            minValue = 1
+            value = currentStrip!!.num
+            wrapSelectorWheel = true
+        }
+
+        val b1 = d.findViewById((R.id.submit_btn)) as Button
         b1.setOnClickListener {
             comicNumber.text = np.value.toString()
             fetchComic(np.value)
@@ -196,14 +193,17 @@ class ComicPageFragment : Fragment() {
         d.show()
     }
 
-    fun showAltText() {
+    private fun showAltText() {
         if (currentStrip == null)
             return
-        val d = Dialog(activity)
-        d.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        d.setContentView(R.layout.dialog_alt_text)
-        val tv = d.findViewById(R.id.alt_text) as TextView
+        val d = Dialog(activity!!.applicationContext).apply {
+            requestWindowFeature(Window.FEATURE_NO_TITLE)
+            setContentView(R.layout.dialog_alt_text)
+        }
+
+        val tv: TextView = d.findViewById(R.id.alt_text)
         tv.text = currentStrip!!.alt
+
         val showMoreBtn = d.findViewById(R.id.show_more_btn) as Button
         val explainedButton = d.findViewById(R.id.explained_btn) as Button
 
@@ -218,25 +218,25 @@ class ComicPageFragment : Fragment() {
     }
 
 
-    fun openLinkAndDismissDialog(link: String, dialog: Dialog?) {
+    private fun openLinkAndDismissDialog(link: String, dialog: Dialog?) {
         val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
         startActivity(browserIntent)
         dialog?.dismiss()
     }
 
 
-    fun saveFavorite(isChecked: Boolean) {
+    private fun saveFavorite(isChecked: Boolean) {
         val favName = "${currentStrip!!.num} - ${currentStrip!!.safe_title}"
         if (isChecked)
-            MainActivity.Companion.favorites.add(favName)
+            MainActivity.favorites.add(favName)
         else {
-            val index = MainActivity.Companion.favorites.binarySearch(favName)
-            MainActivity.Companion.favorites.removeAt(index)
+            val index = MainActivity.favorites.binarySearch(favName)
+            MainActivity.favorites.removeAt(index)
         }
-        MainActivity.Companion.favorites.sort()
+        MainActivity.favorites.sort()
     }
 
-    fun shareCurrentComicAsLink() {
+    private fun shareCurrentComicAsLink() {
         val sendIntent = Intent()
         sendIntent.action = Intent.ACTION_SEND
         sendIntent.putExtra(Intent.EXTRA_TEXT,
@@ -246,7 +246,8 @@ class ComicPageFragment : Fragment() {
         startActivity(openInChooser)
     }
 
-    fun shareCurrentComicAsPicture() {
+    //TODO fix this, doesn't seem to work anymore
+    private fun shareCurrentComicAsPicture() {
         val outputDir = activity!!.externalCacheDir
         val outputFile = File.createTempFile("shareTemp", "png", outputDir)
         saveBitmapToDisk(bitmap, outputFile.absolutePath)
@@ -254,15 +255,17 @@ class ComicPageFragment : Fragment() {
         val clipboard = activity!!.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.primaryClip = ClipData.newPlainText("Alt text", currentStrip!!.alt)
 
-        val share = Intent(Intent.ACTION_SEND)
-        share.type = "image/jpeg"
-        share.putExtra(Intent.EXTRA_STREAM, Uri.parse(outputFile.absolutePath))
+        val share = Intent(Intent.ACTION_SEND).apply {
+            type = "image/jpeg"
+            putExtra(Intent.EXTRA_STREAM, Uri.parse(outputFile.absolutePath))
+        }
+
         Toast.makeText(activity, getString(R.string.toast_alt_text_copied),
                 Toast.LENGTH_SHORT).show()
         startActivity(Intent.createChooser(share, "Share Image"))
     }
 
-    fun saveBitmapToDisk(bmp: Bitmap?, fileDestinationPath: String): String {
+    private fun saveBitmapToDisk(bmp: Bitmap?, fileDestinationPath: String): String {
         val out = FileOutputStream(fileDestinationPath)
         bmp?.compress(Bitmap.CompressFormat.PNG, 100, out)
 
@@ -274,9 +277,12 @@ class ComicPageFragment : Fragment() {
         val imageFileName = "xkcd_$currentStrip.num.png"
         val storageDir = File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES), getString(R.string.app_name))
+        
         if (!storageDir.exists())
             storageDir.mkdirs()
+        
         val imageFile = File("${storageDir.absoluteFile}/$imageFileName")
+        
         if (imageFile.exists()) {
             SnackbarManager.show(
                     Snackbar.with(activity)
@@ -287,11 +293,11 @@ class ComicPageFragment : Fragment() {
         }
         saveBitmapToDisk(bitmap, imageFile.absolutePath)
 
-        val mediaScanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE)
         val f = File(imageFile.absolutePath)
         val contentUri = Uri.fromFile(f)
-        mediaScanIntent.data = contentUri
+        val mediaScanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE).apply { data=contentUri }
         activity!!.sendBroadcast(mediaScanIntent)
+        
         reloadDialog.dismiss()
         SnackbarManager.show(
                 Snackbar.with(activity)
@@ -301,6 +307,7 @@ class ComicPageFragment : Fragment() {
         bitmap = null
     }
 
+    //TODO turn this into private or a standalone class
     inner class FetchImage : AsyncTask<Void, Void, Void>() {
         override fun doInBackground(vararg params: Void?): Void? {
             val postMediaUrl = URL(currentStrip!!.img)

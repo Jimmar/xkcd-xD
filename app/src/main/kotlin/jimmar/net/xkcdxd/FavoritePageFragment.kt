@@ -14,16 +14,14 @@ import android.widget.TextView
  */
 
 class FavoritePageFragment : ListFragment() {
-    lateinit var adapter: ArrayAdapter<String>
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_favorite, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val adapter = ArrayAdapter(activity, android.R.layout.simple_list_item_1, MainActivity.Companion.favorites)
+        val adapter = ArrayAdapter(activity!!.applicationContext, android.R.layout.simple_list_item_1, MainActivity.favorites)
         listView.adapter = adapter
-
         
         if (adapter.count > 0)
             view.findViewById<TextView>(R.id.no_favorites_tv).visibility = View.GONE
