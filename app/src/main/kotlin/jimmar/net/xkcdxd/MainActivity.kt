@@ -3,13 +3,13 @@ package jimmar.net.xkcdxd
 import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.support.v7.app.ActionBar
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.Toolbar
 import android.view.Menu
 import android.view.MenuItem
 import jimmar.net.xkcdxd.navigationDrawer.NavigationDrawerCallbacks
 import jimmar.net.xkcdxd.navigationDrawer.NavigationDrawerFragment
+import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity(), NavigationDrawerCallbacks {
 
@@ -25,11 +25,12 @@ class MainActivity : AppCompatActivity(), NavigationDrawerCallbacks {
         setContentView(R.layout.activity_main)
 
 
-        mToolbar = findViewById(R.id.toolbar_actionbar)
+        mToolbar = toolbar_actionbar as Toolbar?
         setSupportActionBar(mToolbar)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-        mNavigationDrawerFragment = supportFragmentManager.findFragmentById(R.id.fragment_drawer) as NavigationDrawerFragment
-        mNavigationDrawerFragment.setup(R.id.fragment_drawer, findViewById(R.id.drawer), mToolbar)
+
+        mNavigationDrawerFragment = fragment_drawer as NavigationDrawerFragment
+        mNavigationDrawerFragment.setup(R.id.fragment_drawer, drawer, mToolbar)
 
         favorites = retrieveFavorites()
     }
@@ -48,7 +49,7 @@ class MainActivity : AppCompatActivity(), NavigationDrawerCallbacks {
         val pref = getPreferences(Context.MODE_PRIVATE)
         val editor = pref.edit()
         for (i in 0 until favorites.size) editor.putString("favorite_$i", favorites[i])
-        editor.putInt("fav_latest_value", favorites.size);
+        editor.putInt("fav_latest_value", favorites.size)
         editor.apply()
     }
 
@@ -65,15 +66,7 @@ class MainActivity : AppCompatActivity(), NavigationDrawerCallbacks {
         fragment?.let { supportFragmentManager.beginTransaction().replace(R.id.container, it).commit() }
     }
 
-    private fun onSectionAttached(number: Int) {
-        when (number) {
-            1 -> title = getString(R.string.title_section1)
-            2 -> title = getString(R.string.title_section2)
-        }
-    }
-
     fun restoreActionBar() {
-        supportActionBar!!.navigationMode = ActionBar.NAVIGATION_MODE_STANDARD
         supportActionBar!!.setDisplayShowTitleEnabled(true)
         supportActionBar!!.title = title
     }

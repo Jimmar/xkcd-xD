@@ -13,17 +13,24 @@ import android.os.AsyncTask
 import android.os.Bundle
 import android.os.Environment
 import android.support.v4.app.Fragment
+import android.util.Log
 import android.view.*
 import android.webkit.WebView
-import android.widget.*
+import android.widget.CheckBox
+import android.widget.TextView
+import android.widget.Toast
 import com.nispok.snackbar.Snackbar
 import com.nispok.snackbar.SnackbarManager
 import com.nispok.snackbar.enums.SnackbarType
 import jimmar.net.xkcdxd.classes.Strip
 import jimmar.net.xkcdxd.helpers.RestAPI
+import kotlinx.android.synthetic.main.dialog_alt_text.*
+import kotlinx.android.synthetic.main.dialog_number_picker.*
+import kotlinx.android.synthetic.main.fragment_main.*
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
+import java.util.*
 
 
 /**
@@ -31,6 +38,7 @@ import java.net.URL
  */
 
 const val EXPLAIN_URL = "http://www.explainxkcd.com/wiki/index.php/"
+const val XKCD_URL = "http://xkcd.com/"
 
 class ComicPageFragment : Fragment() {
     var currentStrip: Strip? = null
@@ -38,17 +46,17 @@ class ComicPageFragment : Fragment() {
     private lateinit var wv: WebView
     private var latestStrip: Strip? = null
 
-    private lateinit var comicNumber: TextView
+    private var comicNumber: TextView? = null
 
-    private lateinit var favoriteBtn: CheckBox
-    private lateinit var prevComicBtn: ImageButton
-    private lateinit var nextComicBtn: ImageButton
-    private lateinit var latestComicBtn: ImageButton
+    private var favoriteBtn: CheckBox? = null
 
     lateinit var reloadDialog: Dialog
     internal var bitmap: Bitmap? = null
 
     internal var isShare = false
+
+    private var clickTime = 0L
+    private val clickTimeThreshold = 70
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,34 +65,39 @@ class ComicPageFragment : Fragment() {
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val rootView = inflater.inflate(R.layout.fragment_main, container, false)
 
-        wv = rootView.findViewById(R.id.webView)
+        return inflater.inflate(R.layout.fragment_main, container, false)
+    }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        wv = webView
         with(wv) {
             settings.builtInZoomControls = true
             settings.displayZoomControls = false
             setOnTouchListener { v, event ->
                 when (event?.action) {
-                    MotionEvent.ACTION_DOWN -> showAltText()
+                    MotionEvent.ACTION_DOWN -> {
+                        clickTime = Calendar.getInstance().timeInMillis
+                    }
+                    MotionEvent.ACTION_UP -> {
+                        if (Calendar.getInstance().timeInMillis - clickTime < clickTimeThreshold) showAltText()
+                    }
                 }
                 v?.onTouchEvent(event) ?: true
             }
         }
 
-        comicNumber = rootView.findViewById(R.id.comic_number) as TextView
-        favoriteBtn = rootView.findViewById(R.id.favorite_toggle) as CheckBox
-        prevComicBtn = rootView.findViewById(R.id.prev_comic_btn) as ImageButton
-        nextComicBtn = rootView.findViewById(R.id.next_comic_btn) as ImageButton
-        latestComicBtn = rootView.findViewById(R.id.latest_comic_btn) as ImageButton
+        comicNumber = comic_number
+        comicNumber?.setOnClickListener { showNumberPicker() }
+        favoriteBtn = favorite_toggle
+        favoriteBtn?.setOnClickListener { saveFavorite(favoriteBtn?.isChecked) }
+        prev_comic_btn?.setOnClickListener { fetchComic(currentStrip!!.num - 1) }
+        next_comic_btn?.setOnClickListener { fetchComic(currentStrip!!.num + 1) }
+        latest_comic_btn?.setOnClickListener { fetchComic(-1) }
 
-        comicNumber.setOnClickListener { showNumberPicker() }
-        favoriteBtn.setOnClickListener { saveFavorite(favoriteBtn.isChecked) }
-        prevComicBtn.setOnClickListener { fetchComic(currentStrip!!.num - 1) }
-        nextComicBtn.setOnClickListener { fetchComic(currentStrip!!.num + 1) }
-        latestComicBtn.setOnClickListener { fetchComic(-1) }
-
-        reloadDialog = Dialog(activity).apply {
+        reloadDialog = Dialog(activity!!).apply {
             requestWindowFeature(Window.FEATURE_NO_TITLE)
             setContentView(R.layout.dialog_loading)
             setCancelable(false)
@@ -93,7 +106,6 @@ class ComicPageFragment : Fragment() {
         val num = arguments?.getInt("comicNumber", 0) ?: -1
         fetchComic(num)
 
-        return rootView
     }
 
     private fun fetchComic(number: Int) {
@@ -128,12 +140,12 @@ class ComicPageFragment : Fragment() {
 
         wv.loadUrl(comic.img)
 
-        comicNumber.text = comic.num.toString()
+        comicNumber?.text = comic.num.toString()
 
         (activity as MainActivity).setMTitle(comic.safe_title)
         (activity as MainActivity).restoreActionBar()
 
-        favoriteBtn.isChecked = MainActivity.favorites.binarySearch(
+        favoriteBtn?.isChecked = MainActivity.favorites.binarySearch(
                 "${currentStrip!!.num} - ${currentStrip!!.safe_title}") >= 0
 
         reloadDialog.dismiss()
@@ -171,50 +183,41 @@ class ComicPageFragment : Fragment() {
     private fun showNumberPicker() {
         if (latestStrip == null)
             return
-        val d = Dialog(activity!!.applicationContext).apply {
+        Dialog(activity!!).apply {
             setTitle(getString(R.string.number_picker_title))
             setContentView(R.layout.dialog_number_picker)
-        }
+            val np = numberPicker1
+            with(np) {
+                maxValue = latestStrip!!.num
+                minValue = 1
+                value = currentStrip!!.num
+                wrapSelectorWheel = true
+            }
 
-        val np = d.findViewById(R.id.numberPicker1) as NumberPicker
-        with(np) {
-            maxValue = latestStrip!!.num
-            minValue = 1
-            value = currentStrip!!.num
-            wrapSelectorWheel = true
+            submit_btn.setOnClickListener {
+                comicNumber?.text = np.value.toString()
+                fetchComic(np.value)
+                dismiss()
+            }
+            show()
         }
-
-        val b1 = d.findViewById((R.id.submit_btn)) as Button
-        b1.setOnClickListener {
-            comicNumber.text = np.value.toString()
-            fetchComic(np.value)
-            d.dismiss()
-        }
-        d.show()
     }
 
     private fun showAltText() {
         if (currentStrip == null)
             return
-        val d = Dialog(activity!!.applicationContext).apply {
+        Dialog(activity!!).apply {
             requestWindowFeature(Window.FEATURE_NO_TITLE)
             setContentView(R.layout.dialog_alt_text)
+            alt_text.text = currentStrip!!.alt
+
+            show_more_btn.setOnClickListener { openLinkAndDismissDialog(XKCD_URL + currentStrip!!.num, this) }
+            explained_btn.setOnClickListener { openLinkAndDismissDialog(EXPLAIN_URL + currentStrip!!.num, this) }
+
+            if (currentStrip!!.link.length < 3) show_more_btn.visibility = View.GONE
+
+            show()
         }
-
-        val tv: TextView = d.findViewById(R.id.alt_text)
-        tv.text = currentStrip!!.alt
-
-        val showMoreBtn = d.findViewById(R.id.show_more_btn) as Button
-        val explainedButton = d.findViewById(R.id.explained_btn) as Button
-
-        showMoreBtn.setOnClickListener { openLinkAndDismissDialog(currentStrip!!.link, d) }
-        explainedButton.setOnClickListener {
-            openLinkAndDismissDialog(EXPLAIN_URL + currentStrip!!.num, d)
-        }
-
-        if (currentStrip!!.link.length < 3) showMoreBtn.visibility = View.GONE
-
-        d.show()
     }
 
 
@@ -225,7 +228,11 @@ class ComicPageFragment : Fragment() {
     }
 
 
-    private fun saveFavorite(isChecked: Boolean) {
+    private fun saveFavorite(isChecked: Boolean?) {
+        if (isChecked == null) {
+            Log.e("xkcdxd", "error, is checked in null")
+            return
+        }
         val favName = "${currentStrip!!.num} - ${currentStrip!!.safe_title}"
         if (isChecked)
             MainActivity.favorites.add(favName)
@@ -240,7 +247,7 @@ class ComicPageFragment : Fragment() {
         val sendIntent = Intent()
         sendIntent.action = Intent.ACTION_SEND
         sendIntent.putExtra(Intent.EXTRA_TEXT,
-                "${getString(R.string.share_comic_link)}\nhttp://xkcd.com/${currentStrip!!.num}")
+                "${getString(R.string.share_comic_link)}\n$XKCD_URL${currentStrip!!.num}")
         sendIntent.type = "text/plain"
         val openInChooser = Intent.createChooser(sendIntent, "Share on...")
         startActivity(openInChooser)
@@ -277,12 +284,12 @@ class ComicPageFragment : Fragment() {
         val imageFileName = "xkcd_$currentStrip.num.png"
         val storageDir = File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES), getString(R.string.app_name))
-        
+
         if (!storageDir.exists())
             storageDir.mkdirs()
-        
+
         val imageFile = File("${storageDir.absoluteFile}/$imageFileName")
-        
+
         if (imageFile.exists()) {
             SnackbarManager.show(
                     Snackbar.with(activity)
@@ -295,9 +302,9 @@ class ComicPageFragment : Fragment() {
 
         val f = File(imageFile.absolutePath)
         val contentUri = Uri.fromFile(f)
-        val mediaScanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE).apply { data=contentUri }
+        val mediaScanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE).apply { data = contentUri }
         activity!!.sendBroadcast(mediaScanIntent)
-        
+
         reloadDialog.dismiss()
         SnackbarManager.show(
                 Snackbar.with(activity)

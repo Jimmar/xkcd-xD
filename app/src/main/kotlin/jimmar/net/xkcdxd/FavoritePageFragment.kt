@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.ListView
-import android.widget.TextView
+import kotlinx.android.synthetic.main.fragment_favorite.*
 
 /**
  * Created by Jimmar on 29/5/17.
@@ -20,11 +20,11 @@ class FavoritePageFragment : ListFragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val adapter = ArrayAdapter(activity!!.applicationContext, android.R.layout.simple_list_item_1, MainActivity.favorites)
+        val adapter = ArrayAdapter(activity!!, android.R.layout.simple_list_item_1, MainActivity.favorites)
         listView.adapter = adapter
         
         if (adapter.count > 0)
-            view.findViewById<TextView>(R.id.no_favorites_tv).visibility = View.GONE
+            no_favorites_tv.visibility = View.GONE
 
         if (activity == null) {
             (activity as MainActivity).title = "Favorites"
@@ -37,7 +37,7 @@ class FavoritePageFragment : ListFragment() {
         super.onListItemClick(l, v, position, id)
         val fragment = ComicPageFragment()
         val bundle = Bundle()
-        val favoriteString = MainActivity.Companion.favorites[position]
+        val favoriteString = MainActivity.favorites[position]
         bundle.putInt("comicNumber", favoriteString.split("-")[0].trim().toInt())
         fragment.arguments = bundle
         (activity as MainActivity).switchContent(fragment)
