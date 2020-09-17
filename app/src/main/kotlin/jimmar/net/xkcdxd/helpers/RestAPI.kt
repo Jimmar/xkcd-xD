@@ -12,29 +12,29 @@ import retrofit2.converter.moshi.MoshiConverterFactory
  */
 
 class RestAPI(onSuccess: (Strip) -> Unit,
-              onFailure: () -> Unit) : Callback<Strip>{
-    
+              onFailure: () -> Unit) : Callback<Strip> {
+
     private val xkcdAPI: XkcdAPI
     private val onSuccessCallback: (Strip) -> Unit
     private val onFailureCallback: () -> Unit
-    
+
     init {
-        
+
         val retrofit = Retrofit.Builder()
                 .baseUrl("http://xkcd.com/")
                 .addConverterFactory(MoshiConverterFactory.create())
                 .build()
-        
+
         onSuccessCallback = onSuccess
         onFailureCallback = onFailure
         xkcdAPI = retrofit.create(XkcdAPI::class.java)
     }
-    
-    fun getLatestStrip(): Call<Strip>{
+
+    fun getLatestStrip(): Call<Strip> {
         return xkcdAPI.getLatest()
     }
-    
-    fun getStrip(number: Int): Call<Strip>{
+
+    fun getStrip(number: Int): Call<Strip> {
         return xkcdAPI.getComic(number)
     }
 
@@ -46,5 +46,5 @@ class RestAPI(onSuccess: (Strip) -> Unit,
         t!!.printStackTrace()
         onFailureCallback()
     }
-    
+
 }

@@ -12,7 +12,7 @@ import retrofit2.http.Path
 interface XkcdAPI {
     @GET("/info.0.json")
     fun getLatest(): Call<Strip>;
-    
+
     @GET("{number}/info.0.json")
-    fun getComic(@Path("number") number:  Int): Call<Strip>
+    fun getComic(@Path("number") number: Int): Call<Strip>
 }

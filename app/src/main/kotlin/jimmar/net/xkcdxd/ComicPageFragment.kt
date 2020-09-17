@@ -12,13 +12,13 @@ import android.net.Uri
 import android.os.AsyncTask
 import android.os.Bundle
 import android.os.Environment
-import android.support.v4.app.Fragment
 import android.util.Log
 import android.view.*
 import android.webkit.WebView
 import android.widget.CheckBox
 import android.widget.TextView
 import android.widget.Toast
+import androidx.fragment.app.Fragment
 import com.nispok.snackbar.Snackbar
 import com.nispok.snackbar.SnackbarManager
 import com.nispok.snackbar.enums.SnackbarType
@@ -159,13 +159,13 @@ class ComicPageFragment : Fragment() {
         reloadDialog.dismiss()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
-        inflater?.inflate(R.menu.comic_page, menu)
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.comic_page, menu)
         super.onCreateOptionsMenu(menu, inflater)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        when (item?.itemId) {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
             R.id.action_share_pic -> {
                 isShare = true
                 FetchImage().execute()
@@ -260,7 +260,7 @@ class ComicPageFragment : Fragment() {
         saveBitmapToDisk(bitmap, outputFile.absolutePath)
 
         val clipboard = activity!!.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.primaryClip = ClipData.newPlainText("Alt text", currentStrip!!.alt)
+        clipboard.setPrimaryClip(ClipData.newPlainText("Alt text", currentStrip!!.alt))
 
         val share = Intent(Intent.ACTION_SEND).apply {
             type = "image/jpeg"

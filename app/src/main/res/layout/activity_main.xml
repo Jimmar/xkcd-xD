@@ -11,9 +11,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
-    <android.support.v4.widget.DrawerLayout
+    <androidx.drawerlayout.widget.DrawerLayout
         android:id="@+id/drawer"
-        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/toolbar_actionbar">
@@ -22,7 +21,8 @@
             android:id="@+id/container"
             android:layout_width="match_parent"
             android:clickable="true"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent"
+            android:focusable="true" />
 
         <!-- android:layout_marginTop="?android:attr/actionBarSize"-->
         <fragment
@@ -32,5 +32,5 @@
             android:layout_height="match_parent"
             android:layout_gravity="start"
             app:layout="@layout/fragment_navigation_drawer"/>
-    </android.support.v4.widget.DrawerLayout>
+    </androidx.drawerlayout.widget.DrawerLayout>
 </RelativeLayout>

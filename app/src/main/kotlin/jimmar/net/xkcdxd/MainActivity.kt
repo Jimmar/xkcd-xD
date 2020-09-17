@@ -2,11 +2,12 @@ package jimmar.net.xkcdxd
 
 import android.content.Context
 import android.os.Bundle
-import android.support.v4.app.Fragment
-import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.Toolbar
+
 import android.view.Menu
 import android.view.MenuItem
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
+import androidx.fragment.app.Fragment
 import jimmar.net.xkcdxd.navigationDrawer.NavigationDrawerCallbacks
 import jimmar.net.xkcdxd.navigationDrawer.NavigationDrawerFragment
 import kotlinx.android.synthetic.main.activity_main.*
@@ -79,8 +80,8 @@ class MainActivity : AppCompatActivity(), NavigationDrawerCallbacks {
         return super.onCreateOptionsMenu(menu)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        if (item?.itemId == R.id.action_settings)
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.action_settings)
             return true
 
         return super.onOptionsItemSelected(item)
